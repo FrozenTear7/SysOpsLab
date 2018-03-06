@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include "library1.c"
+#include "ex1.h"
+#include "ex1shared.h"
 
 int main() {
     int n;
@@ -8,6 +9,9 @@ int main() {
     scanf("%d", &n);
 
     printAllocs(n);
+
+    char *arr1 = createArray(4);
+    deleteArray(arr1);
 
     return 0;
 }
