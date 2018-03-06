@@ -1,25 +1,22 @@
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
-using namespace std;
-
-void printAllocs() {
-    int n;
+void printAllocs(int n) {
     float *arr1, *arr2;
-
-    cout << "Podaj ilosc elementow n: " << endl;
-    cin >> n;
 
     arr1 = (float *) malloc(n * sizeof(float));
     arr2 = (float *) calloc(n, sizeof(float));
 
     for (int i = 0; i < n; i++) {
-        cout << arr1[i] << endl;
+        printf("%f", arr1[i]);
+        puts("\n");
     }
 
-    cout << endl;
+    puts("\n");
 
     for (int i = 0; i < n; i++) {
-        cout << arr2[i] << endl;
+        printf("%f", arr2[i]);
+        puts("\n");
     }
 
     free(arr1);

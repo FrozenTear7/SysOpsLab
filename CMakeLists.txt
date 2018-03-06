@@ -3,4 +3,4 @@ project(SysOpsLab)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(SysOpsLab lab1/main.cpp)
+add_executable(SysOpsLab lab1/main.c)
