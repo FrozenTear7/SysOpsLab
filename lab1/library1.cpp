@@ -2,7 +2,7 @@
 
 using namespace std;
 
-int main() {
+void printAllocs() {
     int n;
     float *arr1, *arr2;
 
@@ -24,6 +24,4 @@ int main() {
 
     free(arr1);
     free(arr2);
-
-    return 0;
 }
