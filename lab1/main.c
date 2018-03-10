@@ -1,15 +1,7 @@
 #include <stdio.h>
-#include "ex1.h"
-#include "ex1shared.h"
+#include "libEx1.h"
 
 int main() {
-    int n;
-
-    puts("Podaj ilosc elementow n: ");
-    scanf("%d", &n);
-
-    printAllocs(n);
-
     char *arr1 = createArray(4);
     deleteArray(arr1);
 

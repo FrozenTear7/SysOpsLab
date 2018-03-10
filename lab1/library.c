@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <rpcndr.h>
 #include <limits.h>
 
 // n jest wielkoscia tablicy
