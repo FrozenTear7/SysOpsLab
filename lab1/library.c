@@ -3,11 +3,13 @@
 #include <limits.h>
 #include <time.h>
 
+#define GLOBALARR 1000
+
+char globalArr[GLOBALARR][GLOBALARR];
+
 // n jest wielkoscia tablicy
 char **createArray(int n) {
-    char **arr;
-
-    arr = (char *) calloc(n, sizeof(char *));
+    char **arr = (char **) calloc(n, sizeof(char *));
 
     return arr;
 }
@@ -22,19 +24,33 @@ void deleteArray(char **arr, int n) {
     free(arr);
 }
 
-// x jest wielkoscia tablicy blokow, y to wielkosc blokow
-char *createBlock(char **arr, int n, int i) {
+// n to rozmiar bloku, i to indeks w podanej tablicy
+void createBlock(char **arr, int n, int i) {
     int j;
     time_t t;
     srand((unsigned) time(&t));
 
-    arr[i] = (char) calloc(n, sizeof(char));
-    for (j = 0; j < n; j++) {
-        arr[i][j] = rand() % 100;
+    if(arr[i]) {
+        arr[i] = (char *) calloc(n, sizeof(char));
+        for (j = 0; j < n; j++) {
+            arr[i][j] = rand() % 100;
+        }
     }
-
-    return arr;
 }
+/*
+// n to rozmiar bloku, i to indeks w globalnej tablicy
+void *createBlock(int n, int i) {
+    int j;
+    time_t t;
+    srand((unsigned) time(&t));
+
+    if(i < 1000) {
+        globalArr[i] = (char) calloc(n, sizeof(char));
+        for (j = 0; j < n; j++) {
+            globalArr[i][j] = rand() % 100;
+        }
+    }
+}*/
 
 void deleteBlock(char **arr, int i) {
     if(arr[i])
