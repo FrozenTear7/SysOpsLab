@@ -14,8 +14,8 @@ char **createArray(int n) {
     return arr;
 }
 
-void deleteArray(char **arr, int n) {
-    int i;
+void deleteArray(char **arr) {
+    int i, n = sizeof(arr)/sizeof(arr[0]);
 
     for (i = 0; i < n; i++) {
         free(arr[i]);
@@ -33,7 +33,7 @@ void createBlock(char **arr, int n, int i) {
     if(arr[i]) {
         arr[i] = (char *) calloc(n, sizeof(char));
         for (j = 0; j < n; j++) {
-            arr[i][j] = rand() % 100;
+            arr[i][j] = rand() % 128;
         }
     }
 }

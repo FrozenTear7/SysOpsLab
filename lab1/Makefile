@@ -1,11 +1,14 @@
-CC = gcc
-LIB = library
+LIB = libblocks
 
 makeall: static compile
 
-compile: main.c
-	$(CC) -std=c99 -c main.c
+compile: main.c libblocks.a
+	gcc $< -L. -libblocks -o $@
 
 static:
-	$(CC) -c $(LIB).c -o $(LIB).o
+	gcc -c $(LIB).c -o $(LIB).o
 	ar rcs $(LIB).a $(LIB).o
+
+shared: 
+	gcc -fPIC -c $(LIB).c -o $(LIB).o
+	gcc -fPIC -shared -o lib$(LIB).so $(LIB).o
