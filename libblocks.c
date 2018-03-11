@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <time.h>
 
 #define GLOBALARR 1000
 
@@ -25,25 +24,21 @@ void deleteArray(char **arr) {
 }
 
 // n to rozmiar bloku, i to indeks w podanej tablicy
-void createBlock(char **arr, unsigned int n, int i) {
+void createBlock(char **arr, char *data, int i) {
     int j;
-    time_t t;
-    int timeSeed = time(&t);
-    srand(timeSeed);
+    unsigned int n = sizeof(data) / sizeof(data[0]);
 
     arr[i] = (char *) calloc(n, sizeof(char));
     for (j = 0; j < n; j++) {
-        arr[i][j] = (char) (rand() % 128);
+        arr[i][j] = data[j];
     }
 }
 
 // n to rozmiar bloku, i to indeks w globalnej tablicy
-void *createGlobalBlock(int n, int i) {
-    int j;
-    time_t t;
-    srand((unsigned) time(&t));
+void *createGlobalBlock(char *data, int i) {
+    int j, n = sizeof(data) / sizeof(data[0]);
 
-    if(i < GLOBALARR) {
+    if (i < GLOBALARR) {
         for (j = 0; j < n; j++) {
             globalArr[i][j] = rand() % 100;
         }
