@@ -42,7 +42,7 @@ void createGlobalBlock(char *data, int i, unsigned int blockSize) {
 
 void deleteBlock(char **arr, int i) {
     if (arr[i])
-        free(arr);
+        free(arr[i]);
 }
 
 int getArrayCharSum(char *arr, int n) {
