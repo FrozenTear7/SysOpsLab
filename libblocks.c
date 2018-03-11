@@ -8,13 +8,14 @@ char globalArr[GLOBALARR][GLOBALARR];
 
 // n jest wielkoscia tablicy
 char **createArray(unsigned int n) {
-    char **arr = (char **) calloc(n, sizeof(char *));
+    char ** arr;
+    arr = calloc(n, sizeof(char *));
 
     return arr;
 }
 
 void deleteArray(char **arr) {
-    int i, n = sizeof(arr) / sizeof(arr[0]);
+    int i, n = sizeof(arr) + 1;
 
     for (i = 0; i < n; i++) {
         free(arr[i]);
@@ -26,22 +27,11 @@ void deleteArray(char **arr) {
 // n to rozmiar bloku, i to indeks w podanej tablicy
 void createBlock(char **arr, char *data, int i) {
     int j;
-    unsigned int n = sizeof(data) / sizeof(data[0]);
+    unsigned int n = sizeof(data) + 1;
 
-    arr[i] = (char *) calloc(n, sizeof(char));
+    arr[i] = calloc(n, sizeof(char));
     for (j = 0; j < n; j++) {
         arr[i][j] = data[j];
-    }
-}
-
-// n to rozmiar bloku, i to indeks w globalnej tablicy
-void *createGlobalBlock(char *data, int i) {
-    int j, n = sizeof(data) / sizeof(data[0]);
-
-    if (i < GLOBALARR) {
-        for (j = 0; j < n; j++) {
-            globalArr[i][j] = rand() % 100;
-        }
     }
 }
 
@@ -51,7 +41,7 @@ void deleteBlock(char **arr, int i) {
 }
 
 int getArrayCharSum(char *arr) {
-    int sum = 0, i, n = sizeof(arr) / sizeof(char);
+    int sum = 0, i, n = sizeof(arr) + 1;
 
     for (i = 0; i < n; i++) {
         sum += arr[i];
@@ -61,15 +51,15 @@ int getArrayCharSum(char *arr) {
 }
 
 char *blockSumClosestToNumber(char **arr, int number) {
-    int i, sumDiff = INT_MAX, n = sizeof(arr) / sizeof(arr[0]);
+    int i, sumDiff = INT_MAX, n = sizeof(arr) + 1;
     char *closestArr = arr[0];
 
     for (i = 1; i < n; i++) {
         int tmpSum = getArrayCharSum(arr[i]);
 
-        if (tmpSum - number < sumDiff && tmpSum - number >= 0) {
+        if (abs(tmpSum - number) < sumDiff) {
             closestArr = arr[i];
-            sumDiff = tmpSum;
+            sumDiff = abs(tmpSum - number);
         }
     }
 
