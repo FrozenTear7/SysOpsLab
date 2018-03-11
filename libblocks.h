@@ -5,7 +5,7 @@
 
 char **createArray(unsigned int n);
 
-void deleteArray(char **arr);
+void deleteArray(char **arr, int n);
 
 void createBlock(char **arr, char *data, int i);
 
