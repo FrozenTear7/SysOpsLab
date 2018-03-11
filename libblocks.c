@@ -8,14 +8,14 @@
 char globalArr[GLOBALARR][GLOBALARR];
 
 // n jest wielkoscia tablicy
-char **createArray(int n) {
+char **createArray(unsigned int n) {
     char **arr = (char **) calloc(n, sizeof(char *));
 
     return arr;
 }
 
 void deleteArray(char **arr) {
-    int i, n = sizeof(arr)/sizeof(arr[0]);
+    int i, n = sizeof(arr) / sizeof(arr[0]);
 
     for (i = 0; i < n; i++) {
         free(arr[i]);
@@ -25,40 +25,38 @@ void deleteArray(char **arr) {
 }
 
 // n to rozmiar bloku, i to indeks w podanej tablicy
-void createBlock(char **arr, int n, int i) {
+void createBlock(char **arr, unsigned int n, int i) {
     int j;
     time_t t;
-    srand((unsigned) time(&t));
+    int timeSeed = time(&t);
+    srand(timeSeed);
 
-    if(arr[i]) {
-        arr[i] = (char *) calloc(n, sizeof(char));
-        for (j = 0; j < n; j++) {
-            arr[i][j] = rand() % 128;
-        }
+    arr[i] = (char *) calloc(n, sizeof(char));
+    for (j = 0; j < n; j++) {
+        arr[i][j] = (char) (rand() % 128);
     }
 }
-/*
+
 // n to rozmiar bloku, i to indeks w globalnej tablicy
-void *createBlock(int n, int i) {
+void *createGlobalBlock(int n, int i) {
     int j;
     time_t t;
     srand((unsigned) time(&t));
 
-    if(i < 1000) {
-        globalArr[i] = (char) calloc(n, sizeof(char));
+    if(i < GLOBALARR) {
         for (j = 0; j < n; j++) {
             globalArr[i][j] = rand() % 100;
         }
     }
-}*/
+}
 
 void deleteBlock(char **arr, int i) {
-    if(arr[i])
+    if (arr[i])
         free(arr);
 }
 
 int getArrayCharSum(char *arr) {
-    int sum = 0, i, n = sizeof(arr)/sizeof(char);
+    int sum = 0, i, n = sizeof(arr) / sizeof(char);
 
     for (i = 0; i < n; i++) {
         sum += arr[i];
@@ -67,8 +65,8 @@ int getArrayCharSum(char *arr) {
     return sum;
 }
 
-char *blockSumClosestToNumber(char **arr, int n, int number) {
-    int i, sumDiff = INT_MAX;
+char *blockSumClosestToNumber(char **arr, int number) {
+    int i, sumDiff = INT_MAX, n = sizeof(arr) / sizeof(arr[0]);
     char *closestArr = arr[0];
 
     for (i = 1; i < n; i++) {
