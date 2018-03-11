@@ -40,9 +40,7 @@ int main() {
 
     printf("\nUsuniecie a nastepnie ponowne dodanie blokow.\n");
 
-    for(i = startDelete; i < endDelete; i++) {
-        deleteBlock(testArr, i);
-    }
+    
 
     for(i = startDelete; i < endDelete; i++) {
         char *tmp = (char *) calloc(blockSize, sizeof(char));
