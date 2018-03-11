@@ -8,7 +8,8 @@ char globalArr[GLOBALARR][GLOBALARR];
 
 // n jest wielkoscia tablicy
 char **createArray(unsigned int n) {
-    char **arr = (char **) calloc(n, sizeof(char *));
+    char **arr;
+    arr = malloc(n * sizeof(char *));
 
     return arr;
 }
@@ -26,7 +27,7 @@ void deleteArray(char **arr, int n) {
 void createBlock(char **arr, char *data, int i, unsigned int blockSize) {
     int j;
 
-    arr[i] = calloc(blockSize, sizeof(char));
+    arr[i] = malloc(blockSize * sizeof(char));
     for (j = 0; j < blockSize; j++) {
         arr[i][j] = data[j];
     }
@@ -83,7 +84,7 @@ int getGlobalArrayCharSum(int i, int n) {
 char *getGlobalBlock(int i, int n) {
     int j;
     char * arr;
-    arr = calloc(n, sizeof(char));
+    arr = malloc(n * sizeof(char));
 
     for(j = 0; j < n; j++) {
         arr[j] = globalArr[i][j];

@@ -3,7 +3,6 @@
 #include "libblocks.h"
 
 int main() {
-
     printf("\nStworzenie tablicy o wielkosci 100 blokow, kazdy blok rozmiaru 100 znakow.\n");
 
     int i, j, closestNumber = 500, startDelete = 10, endDelete = 15;
