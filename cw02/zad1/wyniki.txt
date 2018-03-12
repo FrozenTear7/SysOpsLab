@@ -1,0 +1,87 @@
+----- SORT SYS
+
+//sort sys 1000 4
+Execution: user time 0.18, sys time 0.64
+//sort sys 3000 4
+Execution: user time 2.01, sys time 7.28
+
+//sort sys 1000 512
+Execution: user time 0.31, sys time 1.14
+//sort sys 3000 512
+Execution: user time 1.87, sys time 7.10
+
+//sort sys 1000 4096
+Execution: user time 0.18, sys time 0.79
+//sort sys 1000 4096
+Execution: user time 2.10, sys time 9.28
+
+//sort sys 1000 8192
+Execution: user time 0.22, sys time 1.22
+//sort sys 3000 8192
+Execution: user time 1.70, sys time 11.29
+
+----- SORT LIB
+
+//sort lib 1000 4
+Execution: user time 0.22, sys time 0.65
+//sort lib 3000 4
+Execution: user time 1.94, sys time 5.46
+//sort lib 1000 512
+Execution: user time 0.25, sys time 0.67
+//sort lib 3000 512
+Execution: user time 2.20, sys time 6.26
+//sort lib 1000 4096
+Execution: user time 0.22, sys time 0.81
+//sort lib 3000 4096
+Execution: user time 2.43, sys time 9.56
+//sort lib 1000 8192
+Execution: user time 0.25, sys time 1.33
+//sort lib 3000 8192
+Execution: user time 2.16, sys time 11.65
+
+----- COPY SYS
+
+//copy sys 1000000 4
+Execution: user time 0.24, sys time 1.70
+//copy sys 3000000 4
+Execution: user time 1.17, sys time 7.41
+//copy sys 1000000 512
+Execution: user time 0.25, sys time 1.94
+//copy sys 3000000 512
+Execution: user time 0.81, sys time 6.42
+//copy sys 500000 4096
+Execution: user time 0.20, sys time 1.91
+//copy sys 1000000 4096
+Execution: user time 0.70, sys time 6.31
+//copy sys 300000 8192
+Execution: user time 0.11, sys time 1.26
+//copy sys 600000 8192
+Execution: user time 0.26, sys time 3.60
+
+----- COPY LIB
+
+//copy lib 5000000 4
+Execution: user time 0.23, sys time 0.03
+//copy lib 10000000 4
+Execution: user time 0.45, sys time 0.07
+//copy lib 500000 512
+Execution: user time 0.02, sys time 0.14
+//copy lib 1000000 512
+Execution: user time 0.02, sys time 0.15
+//copy lib 500000 4096
+Execution: user time 0.01, sys time 0.15
+//copy lib 1000000 4096
+Execution: user time 0.02, sys time 0.17
+//copy lib 500000 8192
+Execution: user time 0.01, sys time 0.14
+//copy lib 1000000 8192
+Execution: user time 0.01, sys time 0.15
+
+
+----- WNIOSKI
+W przypadku sortowania zarowno metoda systemowa jak i biblioteczna daja podobne wyniki czasowe
+dla identycznych danych, zatem ciezko ocenic wydajniejszy sposob po tych testach
+
+Natomiast w przypadku kopiowania rekordow z pliku do pliku stosowanie 'lib' daje ogromne przyspieszenie
+w porowaniu z metoda systemowa. Mimo zwiekszenia ilosci kopiowanych rekordow metody biblioteczne
+spisaly sie ponad 10x wydajniej
