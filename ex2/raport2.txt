@@ -1,10 +1,6 @@
-2
-./mainStatic
-xd
-Stworzenie tablicy o wielkosci 100 blokow, kazdy blok rozmiaru 100 znakow.
+9
+Stworzenie tablicy wielkosci 50, o wielkosci 10 blokow.
 
-Odszukanie bloku o sumie elementow najblizszej danej liczbie.
-
-Usuniecie a nastepnie ponowne dodanie blokow.
-
-Naprzemienne usuwanie i dodawanie blokow.
+Wypisanie bloku o indeksie.
+S, J, Q, Y, K, W, I, V, G, Z, 
+Usuniecie, a nastepnie dodanie 2 blokow.

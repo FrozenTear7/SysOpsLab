@@ -1,5 +1,5 @@
 runStatic:
-	./mainStatic xd > raport2.txt
+	./mainStatic 50 10 d 1 2 1 3 2 > raport2.txt
 
 static:
 	gcc -c libblocks.c -o libblocks.o
