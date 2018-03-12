@@ -1,6 +1,6 @@
-9
+
 Stworzenie tablicy wielkosci 50, o wielkosci 10 blokow.
 
 Wypisanie bloku o indeksie.
-S, J, Q, Y, K, W, I, V, G, Z, 
+M, G, M, D, M, I, O, Q, K, X, 
 Usuniecie, a nastepnie dodanie 2 blokow.
