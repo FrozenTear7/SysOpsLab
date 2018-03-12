@@ -1,3 +1,6 @@
+runStatic:
+	./mainStatic xd > raport2.txt
+
 static:
 	gcc -c libblocks.c -o libblocks.o
 	ar rcs liblibblocks.a libblocks.o

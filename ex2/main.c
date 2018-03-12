@@ -2,7 +2,12 @@
 #include <time.h>
 #include "libblocks.h"
 
-int main() {
+int main(int argc, char **argv) {
+    printf("%d", argc);
+    int k;
+
+    // parse arguments
+
     printf("\nStworzenie tablicy o wielkosci 100 blokow, kazdy blok rozmiaru 100 znakow.\n");
 
     int i, j, closestNumber = 500, startDelete = 10, endDelete = 15;

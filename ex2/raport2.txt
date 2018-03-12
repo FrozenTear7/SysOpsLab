@@ -1,0 +1,10 @@
+2
+./mainStatic
+xd
+Stworzenie tablicy o wielkosci 100 blokow, kazdy blok rozmiaru 100 znakow.
+
+Odszukanie bloku o sumie elementow najblizszej danej liczbie.
+
+Usuniecie a nastepnie ponowne dodanie blokow.
+
+Naprzemienne usuwanie i dodawanie blokow.
