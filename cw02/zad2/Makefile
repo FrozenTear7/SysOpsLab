@@ -6,9 +6,8 @@ compileMainNftw:
 	gcc -Wall mainNftw.c -o mainNftw
 	rm -rf
 
-compileTest:
-	gcc -Wall test.c -o test
-	rm -rf
+exampleMain:
+	./main .. gt 1520893098
 
-testMain:
-	./main . = 10000
+exampleMainNftw:
+	./mainNftw .. gt 1520893098

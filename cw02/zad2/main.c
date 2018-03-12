@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-char compare;
+char *compare;
 int ms_time;
 
 void printFileInfo(char *fileName, struct stat fileInfo, char *absolutePath) {
@@ -31,10 +31,10 @@ void printFileInfo(char *fileName, struct stat fileInfo, char *absolutePath) {
 }
 
 void readDirectory(char *dirName) {
-    printf("New folder entry\n\n");
     DIR *d = opendir(dirName);
     struct dirent *dir;
     struct stat fileStat;
+    chdir(dirName);
 
     if (d == NULL)
         return;
@@ -48,22 +48,20 @@ void readDirectory(char *dirName) {
         realpath(dir->d_name, absolutePath);
         lstat(absolutePath, &fileStat);
         
-        printf("%s\n\n", dir->d_name);
-        printf("%d\n\n", dir->d_type);
         if (dir->d_type == DT_DIR) {
-            printf("%s\n\n", absolutePath);
             readDirectory(absolutePath);
-        } else if (compare == '<') {
+            chdir(dirName);
+        } else if (strcmp(compare, "st") == 0) {
             if (fileStat.st_mtime < ms_time &&
                 dir->d_type == DT_REG) {
                 printFileInfo(dir->d_name, fileStat, absolutePath);
             }
-        } else if (compare == '>') {
+        } else if (strcmp(compare, "gt") == 0) {
             if (fileStat.st_mtime > ms_time &&
                 dir->d_type == DT_REG) {
                 printFileInfo(dir->d_name, fileStat, absolutePath);
             }
-        } else if (compare == '=') {
+        } else if (strcmp(compare, "eq") == 0) {
             if (fileStat.st_mtime == ms_time &&
                 dir->d_type == DT_REG) {
                 printFileInfo(dir->d_name, fileStat, absolutePath);
@@ -75,9 +73,9 @@ void readDirectory(char *dirName) {
 }
 
 int main(int argc, char **argv) {
-    char *dirName = "/home/frozentear/AGH/Sysopy/SysOpsLab/cw02";
-    compare = '>';
-    ms_time = 1500099341;
+    char *dirName = argv[1];
+    compare = argv[2];
+    ms_time = atoi(argv[3]);
 
     readDirectory(dirName);
 

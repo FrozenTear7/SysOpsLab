@@ -4,13 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-char compare;
+char *compare;
 int ms_time;
 
 void printInfo(const struct stat *fileInfo, const char *path, int typeflag) {
@@ -36,15 +35,15 @@ void printInfo(const struct stat *fileInfo, const char *path, int typeflag) {
 }
 
 int printFileInfo(const char *path, const struct stat *fileInfo, int typeflag, struct FTW *ftwbuf) {
-    if (compare == '<') {
+    if (strcmp(compare, "st") == 0) {
         if (fileInfo->st_mtime < ms_time) {
             printInfo(fileInfo, path, typeflag);
         }
-    } else if (compare == '>') {
+    } else if (strcmp(compare, "gt") == 0) {
         if (fileInfo->st_mtime > ms_time) {
             printInfo(fileInfo, path, typeflag);
         }
-    } else if (compare == '=') {
+    } else if (strcmp(compare, "eq") == 0) {
         if (fileInfo->st_mtime == ms_time) {
             printInfo(fileInfo, path, typeflag);
         }
@@ -54,9 +53,9 @@ int printFileInfo(const char *path, const struct stat *fileInfo, int typeflag, s
 }
 
 int main(int argc, char **argv) {
-    char *dirName = "..", fullName[500];
-    compare = '>';
-    ms_time = 1500099341;
+    char *dirName = argv[1], fullName[500];
+    compare = argv[2];
+    ms_time = atoi(argv[3]);
 
     if (realpath(dirName, fullName) == NULL)
         return 1;
