@@ -1,0 +1,60 @@
+
+Stworzenie tablicy wielkosci 1000, o wielkosci 1000 blokow.
+
+Execution: real time: 0.02, user time 0.01, sys time 0.00
+
+Odszukanie bloku, ktorego suma jest najblizsza podanej liczbie 5000
+O, M, T, I, I, G, F, J, E, R, R, E, P, I, U, G, E, F, B, G, L, T, A, E, O, D, B, R, J, Z, Q, A, L, J, I, W, R, N, F, V, E, Y, B, V, J, W, B, N, D, C, V, O, X, W, V, M, Z, W, D, I, V, V, I, J, G, S, F, X, F, M, S, L, M, V, G, V, R, H, L, U, J, G, L, H, C, G, V, B, E, A, M, A, V, W, J, B, P, Q, Y, W, C, S, I, Q, N, O, M, H, W, X, D, H, D, O, Q, I, W, L, J, B, L, V, D, I, U, M, J, J, C, J, F, G, D, N, W, T, E, I, A, C, H, D, J, N, U, C, V, Q, P, G, T, B, E, W, L, Y, K, X, H, O, G, O, U, K, E, T, F, I, B, F, K, L, K, V, Y, E, X, V, X, P, B, S, S, F, P, D, F, B, A, M, Q, H, D, M, T, H, F, A, R, J, H, D, U, R, A, U, Y, A, P, X, P, S, P, H, A, G, K, F, K, N, U, A, W, X, M, R, G, S, R, Z, B, Y, E, X, P, E, T, P, G, K, M, V, C, E, E, C, M, R, K, W, E, E, Y, A, B, L, R, J, F, I, K, I, I, O, H, X, U, A, P, B, K, D, W, O, H, D, R, W, U, B, U, Y, H, T, Y, K, G, R, T, N, B, D, V, J, T, E, G, N, E, X, O, Q, B, N, E, K, Q, X, G, K, A, D, K, H, W, K, R, C, B, M, P, C, P, M, L, I, Q, T, Y, W, T, M, M, U, Z, Q, G, R, O, N, B, O, S, N, Y, O, X, P, S, A, C, J, E, T, X, R, E, N, N, C, L, G, Q, X, A, Q, P, G, H, F, V, L, W, N, A, U, D, Y, L, V, A, P, G, F, L, D, W, P, S, J, T, D, P, J, C, R, B, U, A, L, B, X, Y, X, N, Y, T, Q, Y, H, O, B, W, U, G, H, A, E, Y, S, Q, T, Y, H, F, C, Z, I, Y, B, V, A, Y, T, Z, N, U, T, E, U, A, U, V, Y, Q, B, I, Q, I, I, L, Y, C, L, F, J, P, G, R, O, H, N, Q, I, I, P, V, C, K, B, X, M, X, S, L, O, W, T, G, E, D, T, E, F, G, J, O, Y, S, I, M, B, X, E, J, F, T, H, K, E, K, H, Q, K, B, D, A, Z, W, I, D, A, C, J, H, K, T, Y, I, N, I, W, O, F, A, A, K, U, J, U, A, T, D, Q, F, F, U, F, G, S, O, K, U, S, T, E, C, O, E, N, B, M, J, S, R, M, S, D, I, B, A, I, W, D, A, C, K, W, H, R, R, X, D, N, P, Y, R, U, P, V, H, S, J, S, K, A, E, C, E, O, D, E, W, A, J, Z, E, U, X, N, N, O, L, S, E, A, Q, X, W, F, V, D, A, E, Y, K, H, C, N, L, T, S, R, R, U, C, Q, Y, Y, Q, M, L, G, X, D, K, Z, W, I, W, D, F, B, D, J, Z, O, Q, E, D, D, X, V, W, O, Q, Z, H, O, Z, X, C, L, D, B, Q, Q, D, O, A, B, S, F, C, X, O, E, L, H, K, Q, K, H, M, J, X, E, I, G, U, H, F, X, U, J, A, N, B, D, D, B, E, X, G, J, V, W, N, I, D, X, Z, Q, G, N, Z, F, R, H, M, L, Q, T, K, N, C, L, C, F, Q, F, G, V, D, O, E, Y, L, T, G, Q, S, H, G, Y, U, F, F, N, O, T, B, H, N, N, U, R, Y, W, X, R, B, F, M, E, U, S, E, F, L, N, V, D, U, E, D, R, J, I, G, A, E, H, H, R, V, D, I, V, Z, H, M, C, N, A, J, H, S, N, O, F, A, L, K, X, P, P, Q, B, A, W, B, E, G, I, V, B, L, F, W, M, N, L, O, A, L, Z, J, G, N, X, L, P, K, Y, O, A, N, G, D, N, D, E, R, J, O, O, M, B, U, K, P, J, V, F, L, J, F, W, P, U, T, C, J, F, A, A, F, Q, G, K, D, L, O, X, W, E, N, I, F, J, T, U, S, Q, A, F, Z, H, B, Q, B, W, T, M, C, V, M, J, L, V, U, R, I, I, Q, F, P, D, N, U, N, I, R, H, B, T, N, A, A, Q, R, B, N, M, P, P, J, E, Y, X, Z, U, Q, H, F, G, M, U, L, C, Q, A, M, H, I, N, C, X, Q, E, N, J, H, C, X, X, R, G, B, S, D, A, M, T, J, T, B, Y, N, N, C, G, P, Q, N, Z, E, S, Y, W, W, M, F, E, O, E, B, I, K, C, C, Q, E, Q, J, P, K, N, P, 
+Execution: real time: 0.01, user time 0.00, sys time 0.00
+
+Usuniecie, a nastepnie dodanie 500 blokow.
+
+Execution: real time: 0.00, user time 0.01, sys time 0.00
+
+Stworzenie tablicy wielkosci 1000, o wielkosci 1000 blokow.
+
+Execution: real time: 0.01, user time 0.01, sys time 0.00
+
+Naprzemienne usuniecie, a nastepnie dodanie 500 blokow.
+
+Execution: real time: 0.01, user time 0.01, sys time 0.00
+
+Stworzenie tablicy wielkosci 1000, o wielkosci 1000 blokow.
+
+Execution: real time: 0.01, user time 0.01, sys time 0.00
+
+Odszukanie bloku, ktorego suma jest najblizsza podanej liczbie 5000
+O, M, T, I, I, G, F, J, E, R, R, E, P, I, U, G, E, F, B, G, L, T, A, E, O, D, B, R, J, Z, Q, A, L, J, I, W, R, N, F, V, E, Y, B, V, J, W, B, N, D, C, V, O, X, W, V, M, Z, W, D, I, V, V, I, J, G, S, F, X, F, M, S, L, M, V, G, V, R, H, L, U, J, G, L, H, C, G, V, B, E, A, M, A, V, W, J, B, P, Q, Y, W, C, S, I, Q, N, O, M, H, W, X, D, H, D, O, Q, I, W, L, J, B, L, V, D, I, U, M, J, J, C, J, F, G, D, N, W, T, E, I, A, C, H, D, J, N, U, C, V, Q, P, G, T, B, E, W, L, Y, K, X, H, O, G, O, U, K, E, T, F, I, B, F, K, L, K, V, Y, E, X, V, X, P, B, S, S, F, P, D, F, B, A, M, Q, H, D, M, T, H, F, A, R, J, H, D, U, R, A, U, Y, A, P, X, P, S, P, H, A, G, K, F, K, N, U, A, W, X, M, R, G, S, R, Z, B, Y, E, X, P, E, T, P, G, K, M, V, C, E, E, C, M, R, K, W, E, E, Y, A, B, L, R, J, F, I, K, I, I, O, H, X, U, A, P, B, K, D, W, O, H, D, R, W, U, B, U, Y, H, T, Y, K, G, R, T, N, B, D, V, J, T, E, G, N, E, X, O, Q, B, N, E, K, Q, X, G, K, A, D, K, H, W, K, R, C, B, M, P, C, P, M, L, I, Q, T, Y, W, T, M, M, U, Z, Q, G, R, O, N, B, O, S, N, Y, O, X, P, S, A, C, J, E, T, X, R, E, N, N, C, L, G, Q, X, A, Q, P, G, H, F, V, L, W, N, A, U, D, Y, L, V, A, P, G, F, L, D, W, P, S, J, T, D, P, J, C, R, B, U, A, L, B, X, Y, X, N, Y, T, Q, Y, H, O, B, W, U, G, H, A, E, Y, S, Q, T, Y, H, F, C, Z, I, Y, B, V, A, Y, T, Z, N, U, T, E, U, A, U, V, Y, Q, B, I, Q, I, I, L, Y, C, L, F, J, P, G, R, O, H, N, Q, I, I, P, V, C, K, B, X, M, X, S, L, O, W, T, G, E, D, T, E, F, G, J, O, Y, S, I, M, B, X, E, J, F, T, H, K, E, K, H, Q, K, B, D, A, Z, W, I, D, A, C, J, H, K, T, Y, I, N, I, W, O, F, A, A, K, U, J, U, A, T, D, Q, F, F, U, F, G, S, O, K, U, S, T, E, C, O, E, N, B, M, J, S, R, M, S, D, I, B, A, I, W, D, A, C, K, W, H, R, R, X, D, N, P, Y, R, U, P, V, H, S, J, S, K, A, E, C, E, O, D, E, W, A, J, Z, E, U, X, N, N, O, L, S, E, A, Q, X, W, F, V, D, A, E, Y, K, H, C, N, L, T, S, R, R, U, C, Q, Y, Y, Q, M, L, G, X, D, K, Z, W, I, W, D, F, B, D, J, Z, O, Q, E, D, D, X, V, W, O, Q, Z, H, O, Z, X, C, L, D, B, Q, Q, D, O, A, B, S, F, C, X, O, E, L, H, K, Q, K, H, M, J, X, E, I, G, U, H, F, X, U, J, A, N, B, D, D, B, E, X, G, J, V, W, N, I, D, X, Z, Q, G, N, Z, F, R, H, M, L, Q, T, K, N, C, L, C, F, Q, F, G, V, D, O, E, Y, L, T, G, Q, S, H, G, Y, U, F, F, N, O, T, B, H, N, N, U, R, Y, W, X, R, B, F, M, E, U, S, E, F, L, N, V, D, U, E, D, R, J, I, G, A, E, H, H, R, V, D, I, V, Z, H, M, C, N, A, J, H, S, N, O, F, A, L, K, X, P, P, Q, B, A, W, B, E, G, I, V, B, L, F, W, M, N, L, O, A, L, Z, J, G, N, X, L, P, K, Y, O, A, N, G, D, N, D, E, R, J, O, O, M, B, U, K, P, J, V, F, L, J, F, W, P, U, T, C, J, F, A, A, F, Q, G, K, D, L, O, X, W, E, N, I, F, J, T, U, S, Q, A, F, Z, H, B, Q, B, W, T, M, C, V, M, J, L, V, U, R, I, I, Q, F, P, D, N, U, N, I, R, H, B, T, N, A, A, Q, R, B, N, M, P, P, J, E, Y, X, Z, U, Q, H, F, G, M, U, L, C, Q, A, M, H, I, N, C, X, Q, E, N, J, H, C, X, X, R, G, B, S, D, A, M, T, J, T, B, Y, N, N, C, G, P, Q, N, Z, E, S, Y, W, W, M, F, E, O, E, B, I, K, C, C, Q, E, Q, J, P, K, N, P, 
+Execution: real time: 0.00, user time 0.00, sys time 0.00
+
+Usuniecie, a nastepnie dodanie 500 blokow.
+
+Execution: real time: 0.02, user time 0.01, sys time 0.00
+
+Stworzenie tablicy wielkosci 1000, o wielkosci 1000 blokow.
+
+Execution: real time: 0.01, user time 0.01, sys time 0.00
+
+Naprzemienne usuniecie, a nastepnie dodanie 500 blokow.
+
+Execution: real time: 0.01, user time 0.01, sys time 0.00
+
+Stworzenie tablicy wielkosci 1000, o wielkosci 1000 blokow.
+
+Execution: real time: 0.02, user time 0.01, sys time 0.00
+
+Odszukanie bloku, ktorego suma jest najblizsza podanej liczbie 5000
+O, M, T, I, I, G, F, J, E, R, R, E, P, I, U, G, E, F, B, G, L, T, A, E, O, D, B, R, J, Z, Q, A, L, J, I, W, R, N, F, V, E, Y, B, V, J, W, B, N, D, C, V, O, X, W, V, M, Z, W, D, I, V, V, I, J, G, S, F, X, F, M, S, L, M, V, G, V, R, H, L, U, J, G, L, H, C, G, V, B, E, A, M, A, V, W, J, B, P, Q, Y, W, C, S, I, Q, N, O, M, H, W, X, D, H, D, O, Q, I, W, L, J, B, L, V, D, I, U, M, J, J, C, J, F, G, D, N, W, T, E, I, A, C, H, D, J, N, U, C, V, Q, P, G, T, B, E, W, L, Y, K, X, H, O, G, O, U, K, E, T, F, I, B, F, K, L, K, V, Y, E, X, V, X, P, B, S, S, F, P, D, F, B, A, M, Q, H, D, M, T, H, F, A, R, J, H, D, U, R, A, U, Y, A, P, X, P, S, P, H, A, G, K, F, K, N, U, A, W, X, M, R, G, S, R, Z, B, Y, E, X, P, E, T, P, G, K, M, V, C, E, E, C, M, R, K, W, E, E, Y, A, B, L, R, J, F, I, K, I, I, O, H, X, U, A, P, B, K, D, W, O, H, D, R, W, U, B, U, Y, H, T, Y, K, G, R, T, N, B, D, V, J, T, E, G, N, E, X, O, Q, B, N, E, K, Q, X, G, K, A, D, K, H, W, K, R, C, B, M, P, C, P, M, L, I, Q, T, Y, W, T, M, M, U, Z, Q, G, R, O, N, B, O, S, N, Y, O, X, P, S, A, C, J, E, T, X, R, E, N, N, C, L, G, Q, X, A, Q, P, G, H, F, V, L, W, N, A, U, D, Y, L, V, A, P, G, F, L, D, W, P, S, J, T, D, P, J, C, R, B, U, A, L, B, X, Y, X, N, Y, T, Q, Y, H, O, B, W, U, G, H, A, E, Y, S, Q, T, Y, H, F, C, Z, I, Y, B, V, A, Y, T, Z, N, U, T, E, U, A, U, V, Y, Q, B, I, Q, I, I, L, Y, C, L, F, J, P, G, R, O, H, N, Q, I, I, P, V, C, K, B, X, M, X, S, L, O, W, T, G, E, D, T, E, F, G, J, O, Y, S, I, M, B, X, E, J, F, T, H, K, E, K, H, Q, K, B, D, A, Z, W, I, D, A, C, J, H, K, T, Y, I, N, I, W, O, F, A, A, K, U, J, U, A, T, D, Q, F, F, U, F, G, S, O, K, U, S, T, E, C, O, E, N, B, M, J, S, R, M, S, D, I, B, A, I, W, D, A, C, K, W, H, R, R, X, D, N, P, Y, R, U, P, V, H, S, J, S, K, A, E, C, E, O, D, E, W, A, J, Z, E, U, X, N, N, O, L, S, E, A, Q, X, W, F, V, D, A, E, Y, K, H, C, N, L, T, S, R, R, U, C, Q, Y, Y, Q, M, L, G, X, D, K, Z, W, I, W, D, F, B, D, J, Z, O, Q, E, D, D, X, V, W, O, Q, Z, H, O, Z, X, C, L, D, B, Q, Q, D, O, A, B, S, F, C, X, O, E, L, H, K, Q, K, H, M, J, X, E, I, G, U, H, F, X, U, J, A, N, B, D, D, B, E, X, G, J, V, W, N, I, D, X, Z, Q, G, N, Z, F, R, H, M, L, Q, T, K, N, C, L, C, F, Q, F, G, V, D, O, E, Y, L, T, G, Q, S, H, G, Y, U, F, F, N, O, T, B, H, N, N, U, R, Y, W, X, R, B, F, M, E, U, S, E, F, L, N, V, D, U, E, D, R, J, I, G, A, E, H, H, R, V, D, I, V, Z, H, M, C, N, A, J, H, S, N, O, F, A, L, K, X, P, P, Q, B, A, W, B, E, G, I, V, B, L, F, W, M, N, L, O, A, L, Z, J, G, N, X, L, P, K, Y, O, A, N, G, D, N, D, E, R, J, O, O, M, B, U, K, P, J, V, F, L, J, F, W, P, U, T, C, J, F, A, A, F, Q, G, K, D, L, O, X, W, E, N, I, F, J, T, U, S, Q, A, F, Z, H, B, Q, B, W, T, M, C, V, M, J, L, V, U, R, I, I, Q, F, P, D, N, U, N, I, R, H, B, T, N, A, A, Q, R, B, N, M, P, P, J, E, Y, X, Z, U, Q, H, F, G, M, U, L, C, Q, A, M, H, I, N, C, X, Q, E, N, J, H, C, X, X, R, G, B, S, D, A, M, T, J, T, B, Y, N, N, C, G, P, Q, N, Z, E, S, Y, W, W, M, F, E, O, E, B, I, K, C, C, Q, E, Q, J, P, K, N, P, 
+Execution: real time: 0.00, user time 0.00, sys time 0.00
+
+Usuniecie, a nastepnie dodanie 500 blokow.
+
+Execution: real time: 0.01, user time 0.01, sys time 0.00
+
+Stworzenie tablicy wielkosci 1000, o wielkosci 1000 blokow.
+
+Execution: real time: 0.01, user time 0.01, sys time 0.00
+
+Naprzemienne usuniecie, a nastepnie dodanie 500 blokow.
+
+Execution: real time: 0.01, user time 0.00, sys time 0.00
