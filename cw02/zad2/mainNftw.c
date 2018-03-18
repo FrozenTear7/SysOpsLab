@@ -1,9 +1,13 @@
-#include <stdio.h>
+#define _XOPEN_SOURCE 500
 #include <ftw.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
+
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 char compare;
@@ -49,15 +53,15 @@ int printFileInfo(const char *path, const struct stat *fileInfo, int typeflag, s
     return 0;
 }
 
-int main3(int argc, char **argv) {
-    char *dirName = argv[1], fullName[500];
-    compare = argv[2][0];
-    ms_time = atoi(argv[3]);
+int main(int argc, char **argv) {
+    char *dirName = "..", fullName[500];
+    compare = '>';
+    ms_time = 1500099341;
 
-    if (_fullpath(fullName, dirName, 500) == NULL)
+    if (realpath(dirName, fullName) == NULL)
         return 1;
 
-    if (nftw(fullName, printFileInfo, 20, FTW_PHYS) == -1) {
+    if (nftw(fullName, printFileInfo, 20, FTW_DEPTH|FTW_PHYS) == -1) {
         return 1;
     }
 

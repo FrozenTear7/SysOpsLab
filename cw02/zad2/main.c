@@ -39,9 +39,7 @@ void readDirectory(char *dirName) {
     if (!d)
         return;
 
-    dir = readdir(d);
-
-    while (dir != NULL) {
+    while ((dir = readdir(d)) != NULL) {
         fileStat = malloc(sizeof(struct stat));
         if (lstat(dir->d_name, fileStat) >= 0) {
             char absolutePath[500];
@@ -50,9 +48,7 @@ void readDirectory(char *dirName) {
             if((strcmp(dir->d_name, ".") == 0) || (strcmp(dir->d_name, "..") == 0)) {
                 dir = readdir(d);
                 continue;
-            }
-            if (dir->d_type == DT_DIR) {
-                printf("xd");
+            } else if (dir->d_type == DT_DIR) {
                 readDirectory(dir->d_name);
             } else if (compare == '<') {
                 if (fileStat->st_mtime < ms_time &&
@@ -73,16 +69,15 @@ void readDirectory(char *dirName) {
         }
 
         free(fileStat);
-        dir = readdir(d);
     }
 
     closedir(d);
 }
 
 int main(int argc, char **argv) {
-    char *dirName = ".";
+    char *dirName = "/home/frozentear/AGH/Sysopy/SysOpsLab/cw02/zad2";
     compare = '>';
-    ms_time = 1500799341;
+    ms_time = 1500099341;
 
     readDirectory(dirName);
 
