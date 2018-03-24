@@ -4,4 +4,4 @@ compileMain:
 
 test:
 	gcc -Wall child.c -o child
-	./main instr.txt
+	./main instr.txt 10 10
