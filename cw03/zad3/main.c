@@ -73,8 +73,7 @@ int main(int argc, char **argv)
         }
         else if (child_pid > 0)
         {
-            waitpid(child_pid, &status, 0);
-            getrusage(RUSAGE_CHILDREN, &usage);
+            wait4(child_pid, &status, 0, &usage);
         }
 
         if (status != 0)
@@ -84,8 +83,8 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        printf("\n\nSystem time ms: %ld\n", usage.ru_stime.tv_usec);
-        printf("User time ms: %ld\n", usage.ru_utime.tv_usec);
+        printf("\n\nSystem time us: %ld.%0*ld\n", usage.ru_utime.tv_sec, 6, usage.ru_stime.tv_usec);
+        printf("User time us: %ld.%0*ld\n", usage.ru_utime.tv_sec, 6, usage.ru_utime.tv_usec);
         printf("Maximum resident set size: %2.4f\n\n\n", (float)usage.ru_maxrss / 1024);
 
         printf("\n\n");
