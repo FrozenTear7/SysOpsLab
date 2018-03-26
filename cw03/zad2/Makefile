@@ -3,5 +3,5 @@ compileMain:
 	rm -rf
 
 test:
-	gcc -Wall child.c -o child
+	gcc -Wall print.c -o print
 	./main instr.txt

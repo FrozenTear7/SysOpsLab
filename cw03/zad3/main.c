@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <unistd.h>
 #include <time.h>
 #include <fcntl.h>
@@ -27,7 +26,8 @@ int main(int argc, char **argv)
 
     while ((read = getline(&line, &len, fp)) != -1)
     {
-        char *pch, *tmp = line;
+        char *pch, *tmp = malloc(strlen(line) + 1);
+        strcpy(tmp, line);
 
         pch = strtok(tmp, " ");
         int i = 0, count = 0;
@@ -37,7 +37,9 @@ int main(int argc, char **argv)
             pch = strtok(NULL, " ");
         }
 
-        char *execArgv[count + 1];
+        free(tmp);
+
+        char *execArgv[count];
         pch = strtok(line, " ");
 
         while (i < count && pch != NULL)
@@ -48,12 +50,10 @@ int main(int argc, char **argv)
         }
 
         pid_t child_pid = fork();
-        if (child_pid == -1)
-        {
-            printf("Could not create child process!");
-            exit(3);
-        }
-        else if (child_pid == 0)
+        int status;
+        struct rusage usage;
+
+        if (child_pid == 0)
         {
             printf("Current exec: %s\n", execArgv[0]);
 
@@ -65,33 +65,28 @@ int main(int argc, char **argv)
             memLimitSet.rlim_cur = memLimit;
             memLimitSet.rlim_max = memLimit;
 
-            if(setrlimit(RLIMIT_CPU, &timeLimitSet) == -1){
-                printf("Time limit set error for: %s, errno: %d\n", execArgv[0], errno);
-            }
-            if(setrlimit(RLIMIT_AS, &memLimitSet) == -1){
-                printf("Memory limit set error for: %s, errno: %d\n", execArgv[0], errno);
-            }
+            setrlimit(RLIMIT_CPU, &timeLimitSet);
+            setrlimit(RLIMIT_AS, &memLimitSet);
 
             execvp(execArgv[0], execArgv);
-            printf("Exec: %s gave an errno: %d!\n", execArgv[0], errno);
             exit(1);
         }
         else if (child_pid > 0)
         {
-            int status;
-            struct rusage usage;
             waitpid(child_pid, &status, 0);
             getrusage(RUSAGE_CHILDREN, &usage);
-            
-            if (WIFEXITED(status) && (WEXITSTATUS(status) != 0))
-            {
-                printf("Error in: %s\n", execArgv[0]);
-            }
-
-            printf("\n\nSystem time: %ld.%ld\n", usage.ru_stime.tv_sec, usage.ru_stime.tv_usec);
-            printf("User time: %ld.%ld\n", usage.ru_utime.tv_sec, usage.ru_utime.tv_usec);
-            printf("Maximum resident set size: %2.4f\n\n\n", (float)usage.ru_maxrss/1024);
         }
+
+        if (status != 0)
+        {
+            printf("Exec: %s gave an error! Status: %d\n", execArgv[0], status);
+            fclose(fp);
+            return 1;
+        }
+
+        printf("\n\nSystem time ms: %ld\n", usage.ru_stime.tv_usec);
+        printf("User time ms: %ld\n", usage.ru_utime.tv_usec);
+        printf("Maximum resident set size: %2.4f\n\n\n", (float)usage.ru_maxrss / 1024);
 
         printf("\n\n");
     }
