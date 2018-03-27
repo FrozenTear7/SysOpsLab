@@ -5,4 +5,4 @@ compileMain:
 test:
 	gcc -Wall bigAlloc.c -o bigAlloc
 	gcc -Wall print.c -o print
-	./main instr.txt 10 10
+	./main instr.txt 5 5

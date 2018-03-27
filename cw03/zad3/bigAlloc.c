@@ -3,11 +3,13 @@
 
 int main()
 {
-    char **testArr = malloc(10000 * sizeof(char*));
-    for(int i = 0; i < 10000; i++) {
-        testArr[i] = malloc(10000 * sizeof(char));
-        testArr[i][i] = 'a';
-        printf("Mem alloc loop iteration %d\n", i);
+    char **testArr = malloc(100 * sizeof(char*));
+    for(int i = 0; i < 100; i++) {
+        testArr[i] = malloc(100 * sizeof(char));
+    }
+
+    for(int i = 0; i < 100; i++) {
+        free(testArr[i]);
     }
 
     free(testArr);
