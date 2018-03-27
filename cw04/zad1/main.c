@@ -1,32 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <signal.h>
 #include <time.h>
-#include <unistd.h>
-#include <stdbool.h>
 
-bool running = true;
+int running = 1;
 
 void exit_program()
 {
-    printf("Odebrano sygnał SIGINT");
+    printf("\nOdebrano sygnał SIGINT");
     exit(0);
 }
 
 void handle_sig()
 {
-    if (!running)
-        running = true;
-    else
-        running = false;
+    running = running ? 0 : 1;
 
-    printf("Oczekuję na CTRL+Z - kontynuacja albo CTRL+C - zakonczenie programu\n");
-
-    struct sigaction act;
-    act.sa_handler = handle_sig;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-    sigaction(SIGTSTP, &act, NULL);
+    printf("\nOczekuję na CTRL+Z - kontynuacja albo CTRL+C - zakonczenie programu\n");
 }
 
 int main()
@@ -39,6 +29,7 @@ int main()
     signal(SIGINT, exit_program);
 
     while (1)
+    {
         if (running)
         {
             time_t now;
@@ -47,6 +38,10 @@ int main()
             now_tm = localtime(&now);
 
             printf("Current hour: %d:%d:%d\n", now_tm->tm_hour, now_tm->tm_min, now_tm->tm_sec);
-            sleep(1);
         }
+
+        sleep(1);
+    }
+
+    return 0;
 }
