@@ -14,9 +14,17 @@ void exit_program()
 
 void handle_sig()
 {
-    running = running ? 0 : 1;
+    //running = running ? 0 : 1;
 
-    printf("\nOczekuję na CTRL+Z - kontynuacja albo CTRL+C - zakonczenie programu\n");
+    if (running)
+    {
+        running = 0;
+        printf("\nOczekuję na CTRL+Z - kontynuacja albo CTRL+C - zakonczenie programu\n");
+    }
+    else
+    {
+        running = 1;
+    }
 }
 
 int main()
