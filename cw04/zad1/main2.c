@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 
 int running = 0;
+int started = 1;
 int pid;
 
 void exit_program()
@@ -28,7 +29,7 @@ void handle_sig()
     }
     else
     {
-        running = 1;
+        started = 1;
     }
 }
 
@@ -36,10 +37,11 @@ int main()
 {
     while (1)
     {
-        if (!running)
+        if (!running && started)
         {
             pid = fork();
             running = 1;
+            started = 0;
         }
 
         if (pid > 0)
