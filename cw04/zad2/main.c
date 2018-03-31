@@ -5,21 +5,19 @@
 #include <time.h>
 #include <sys/wait.h>
 
-int running = 0;
-int started = 1;
-int pid;
+int doneProcesses = 0;
+int n, k;
+int *pidArr;
 
 void exit_program()
 {
-    printf("\nOdebrano sygnał SIGINT\n");
-
-    if (running)
-        kill(pid, SIGINT);
+    for(int j = 0; j < n; j++)
+        kill(pidArr[doneProcesses-1], SIGINT);
 
     exit(0);
 }
 
-void handle_sig()
+void allow()
 {
     if (running)
     {
@@ -33,34 +31,46 @@ void handle_sig()
     }
 }
 
+void send()
+{
+    kill(getppid(), SIGRTMIN + (rand() % (SIGRTMAX - SIGRTMIN)));
+}
+
 int main(int argc, char **argv)
 {
     if (!argv[1] || !argv[2])
         return 1;
+    
+    n = atoi(argv[1]);
+    k = atoi(argv[2]);
+    
+    pidArr = malloc(atoi(argv[1]) * sizeof(int));
+    int i = 0;
 
-    while (1)
+    while (doneProcesses < n)
     {
-        if (!running && started)
-        {
-            pid = fork();
-            running = 1;
-            started = 0;
-        }
+        int pid = fork();
 
         if (pid > 0)
         {
-            struct sigaction act;
-            act.sa_handler = handle_sig;
-            sigemptyset(&act.sa_mask);
-            act.sa_flags = 0;
-            sigaction(SIGTSTP, &act, NULL);
+            pidArr[i] = pid;
+            i++;
+           
             signal(SIGINT, exit_program);
-
-            wait(NULL);
+            signal(SIGUSR1, allow);
         }
         else if (pid == 0)
         {
-            execlp("./infDate.sh", "./infDate.sh", NULL);
+            int sleepTime = (rand%10)+1;
+            sleep(sleepTime);
+            
+            kill(getppid(), SIGUSR1);
+            
+            signal(SIGUSR1, send);
+            
+            pause();
+            
+            exit(1);
         }
     }
 
