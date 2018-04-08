@@ -113,7 +113,7 @@ int main(int argc, char **argv)
             printf(">%d< created\n", getpid());
 
             int sleepTime = (rand() % 10) + 1;
-            sleep(2);
+            sleep(sleepTime);
 
             printf(">%d< slept for: %d\n", getpid(), sleepTime);
 
