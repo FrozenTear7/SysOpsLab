@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     while (i < n)
     {
         if (lastPid != -1)
-            waitpid(lastPid, NULL, NULL);
+            waitpid(lastPid, NULL, 0);
 
         int pid = fork();
 
