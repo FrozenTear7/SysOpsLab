@@ -22,7 +22,7 @@ void runprogArr(char *line)
         progArr[progCount++] = curProgram;
     }
 
-    pid_t *pids = malloc(progCount * sizeof(pid_t));
+    pid_t *pids = calloc(progCount, sizeof(pid_t));
     for (int i = 0; i < progCount; i++)
         pids[i] = -1;
 
@@ -31,7 +31,7 @@ void runprogArr(char *line)
     for (int i = 0; i < progCount; i++)
     {
         int argc = 0;
-        char **argv = malloc(maxProgramArgv * sizeof(char *));
+        char **argv = malloc(maxProgramArgv * sizeof(char*));
 
         char *current_arg = NULL;
         while ((current_arg = strtok(current_arg == NULL ? progArr[i] : NULL, " \n")) != NULL)
@@ -89,7 +89,6 @@ void runprogArr(char *line)
         waitpid(pids[i], NULL, 0);
 
     free(pids);
-    free(progArr);
 }
 
 int main(int argc, char **argv)
