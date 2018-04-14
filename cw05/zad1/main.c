@@ -45,7 +45,7 @@ void runprogArr(char *line)
         fds[1] = fds[3];
         fds[0] = fds[2];
 
-        pipe(fds + 2);
+        pipe(&fds[2]);
 
         pids[i] = fork();
         if (pids[i] == 0)
@@ -63,7 +63,7 @@ void runprogArr(char *line)
                 }
             }
 
-            if (i < progCount - 1)
+            if (i != progCount - 1)
             {
                 if (fds[2] != -1)
                 {

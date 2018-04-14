@@ -22,16 +22,17 @@ void runprogArr(char *line)
         progArr[progCount++] = curProgram;
     }
 
-    pid_t *pids = calloc(progCount, sizeof(pid_t));
+    pid_t *pids = malloc(progCount * sizeof(pid_t));
     for (int i = 0; i < progCount; i++)
         pids[i] = -1;
 
-    int fds[4] = {-1, -1, -1, -1};
+    int evenPipe[2];
+    int oddPipe[2];
 
     for (int i = 0; i < progCount; i++)
     {
         int argc = 0;
-        char **argv = malloc(maxProgramArgv * sizeof(char*));
+        char **argv = malloc(maxProgramArgv * sizeof(char *));
 
         char *current_arg = NULL;
         while ((current_arg = strtok(current_arg == NULL ? progArr[i] : NULL, " \n")) != NULL)
@@ -42,53 +43,55 @@ void runprogArr(char *line)
             argv[argc++] = current_arg;
         }
 
-        fds[1] = fds[3];
-        fds[0] = fds[2];
-
-        pipe(fds + 2);
+        if (i % 2 == 0)
+        {
+            pipe(evenPipe);
+            if (i != 0)
+            {
+                close(evenPipe[0]);
+                close(evenPipe[1]);
+            }
+        }
+        else
+        {
+            pipe(oddPipe);
+            if (i != 1)
+            {
+                close(oddPipe[0]);
+                close(oddPipe[1]);
+            }
+        }
 
         pids[i] = fork();
         if (pids[i] == 0)
         {
-            if (i > 0)
+            if (i % 2 == 0)
             {
-                if (fds[0] != -1)
+                close(evenPipe[0]);
+                dup2(evenPipe[1], 1);
+                if (i != 0)
                 {
-                    dup2(fds[0], STDIN_FILENO);
+                    close(oddPipe[1]);
+                    dup2(oddPipe[0], 0);
+                }
+                else
+                {
+                    close(oddPipe[0]);
+                    dup2(oddPipe[1], 1);
+                    close(evenPipe[1]);
+                    dup2(evenPipe[0], 0);
                 }
 
-                if (fds[1] != -1)
-                {
-                    close(fds[1]);
-                }
+                execvp(argv[0], argv);
             }
-
-            if (i < progCount - 1)
-            {
-                if (fds[2] != -1)
-                {
-                    close(fds[2]);
-                }
-
-                if (fds[3] != -1)
-                {
-                    dup2(fds[3], STDOUT_FILENO);
-                }
-            }
-
-            execvp(argv[0], argv);
         }
 
-        if (fds[1] != -1)
-            close(fds[1]);
-        if (fds[0] != -1)
-            close(fds[0]);
+        for (int i = 0; i < progCount; ++i)
+            waitpid(pids[i], NULL, 0);
+
+        //free(pids);
+        //free(progArr);
     }
-
-    for (int i = 0; i < progCount; ++i)
-        waitpid(pids[i], NULL, 0);
-
-    free(pids);
 }
 
 int main(int argc, char **argv)

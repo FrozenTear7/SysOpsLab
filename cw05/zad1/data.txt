@@ -1,3 +1,2 @@
 ps | wc -l
 ps -aux | wc -l
-echo xd
