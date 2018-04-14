@@ -5,4 +5,4 @@ all:
 	rm -rf
 
 test:
-	./main 2 2
+	./main 2

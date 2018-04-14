@@ -3,23 +3,54 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
+int slavesReady = 0;
+
+void slavesReadyHandler(int signo)
+{
+    if (signo == SIGRTMIN)
+        slavesReady = 1;
+}
+
 int main(int argc, char **argv)
 {
-    mkfifo(argv[1], 0666);
+    printf("xd");
+    signal(SIGRTMIN, slavesReadyHandler);
+
+    char *myfifo = "fifo2";
+
+    if (mkfifo(myfifo, 0666) == -1)
+    {
+        printf("Error creating fifo\n");
+        remove(myfifo);
+        return 1;
+    }
+
+    printf("xd");
     FILE *fp = open(argv[1], "r");
-
-    sleep(5);
-
+    if (fp == NULL)
+    {
+        perror("Master - Error opening fifo");
+        remove(fp);
+        exit(1);
+    }
+    printf("xd");
+/*
+    while (slavesReady == 0)
+    {
+    }
+*/
     char buffer[100];
+    printf("xd");
     while (fgets(buffer, 100, fp) != NULL)
     {
         printf("%s", buffer);
     }
+
+    close(fp);
 
     return 0;
 }

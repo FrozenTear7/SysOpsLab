@@ -3,20 +3,30 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <complex.h>
+
+int slavesReady = 0;
+
+void slavesHandler(int signo)
+{
+  printf("Slave rdy");
+  if (signo == SIGRTMIN + 1)
+    slavesReady++;
+}
 
 int main(int argc, char **argv)
 {
   if (argc < 3)
     return 1;
 
-  char *masterArgv[2];
+  signal(SIGRTMIN + 1, slavesHandler);
+
+  char *masterArgv[3];
   masterArgv[0] = "./master";
-  masterArgv[1] = "/fifo";
+  masterArgv[1] = "fifo2";
+  masterArgv[2] = NULL;
 
   pid_t master = fork();
   if (master == 0)
@@ -25,10 +35,11 @@ int main(int argc, char **argv)
     return 0;
   }
 
-  char *slaveArgv[3];
+  char *slaveArgv[4];
   slaveArgv[0] = "./slave";
-  slaveArgv[1] = "/fifo";
+  slaveArgv[1] = "fifo2";
   slaveArgv[2] = argv[2];
+  slaveArgv[3] = NULL;
 
   for (int i = 0; i < atoi(argv[1]); i++)
   {
@@ -40,10 +51,18 @@ int main(int argc, char **argv)
     }
   }
 
+  while (slavesReady < atoi(argv[1]))
+  {
+  }
+
+  kill(master, SIGRTMIN);
+
   while (1)
   {
-    wait(NULL);
+    waitpid(master, NULL, 0);
   }
+
+  remove("fifo2");
 
   return 0;
 }
