@@ -29,8 +29,8 @@ int main(int argc, char **argv)
         fgets(buffer2, sizeof(buffer), f);
         pclose(f);
         strcat(buffer, buffer2);
-        printf("HOLA HOLA SPEED BUMP\n");
-        //printf("%s\n", buffer);
+        //printf("HOLA HOLA SPEED BUMP\n");
+        printf("%s\n", buffer);
 
         write(fd, buffer, sizeof(buffer));
 

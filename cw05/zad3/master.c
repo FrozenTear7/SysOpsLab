@@ -10,14 +10,26 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+int slavesReady = 0;
+
+void slavesReadyHandler(int signo)
+{
+    if (signo == SIGRTMIN)
+        slavesReady = 1;
+}
+
 int main(int argc, char **argv)
 {
+    signal(SIGRTMIN, slavesReadyHandler);
     mkfifo(argv[1], 0666);
 
     FILE *fp = fopen(argv[1], "r");
 
-    char buf[100];
+    while (slavesReady == 0)
+    {
+    }
 
+    char buf[100];
     while (fgets(buf, sizeof(buf), fp) != NULL)
     {
         printf("%s\n", buf);

@@ -10,10 +10,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+int slavesReady = 0;
+
+void slavesHandler(int signo)
+{
+    if (signo == SIGRTMIN + 1)
+        slavesReady++;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2)
         return 1;
+
+    signal(SIGRTMIN + 1, slavesHandler);
 
     char *fifo = "fifo";
 
@@ -42,6 +52,12 @@ int main(int argc, char **argv)
             execvp(slaveArgv[0], slaveArgv);
         }
     }
+
+    while (slavesReady < atoi(argv[1]))
+    {
+    }
+
+    kill(master, SIGRTMIN);
 
     waitpid(master, NULL, 0);
 
