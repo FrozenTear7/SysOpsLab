@@ -1,2 +1,3 @@
 ps | wc -l
 ps -aux | wc -l
+ls | grep main

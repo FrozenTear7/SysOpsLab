@@ -3,66 +3,55 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
 int slavesReady = 0;
 
-void slavesHandler(int signo)
-{
-  printf("Slave rdy");
-  if (signo == SIGRTMIN + 1)
-    slavesReady++;
+void slavesHandler(int signo) {
+    if (signo == SIGRTMIN + 1)
+        slavesReady++;
 }
 
-int main(int argc, char **argv)
-{
-  if (argc < 3)
-    return 1;
+int main(int argc, char **argv) {
+    if (argc < 3)
+        return 1;
 
-  signal(SIGRTMIN + 1, slavesHandler);
+    signal(SIGRTMIN + 1, slavesHandler);
 
-  char *masterArgv[3];
-  masterArgv[0] = "./master";
-  masterArgv[1] = "fifo2";
-  masterArgv[2] = NULL;
+    char *fifo = "fifo.txt";
 
-  pid_t master = fork();
-  if (master == 0)
-  {
-    execvp(masterArgv[0], masterArgv);
-    return 0;
-  }
+    char *masterArgv[3];
+    masterArgv[0] = "./master";
+    masterArgv[1] = fifo;
+    masterArgv[2] = NULL;
 
-  char *slaveArgv[4];
-  slaveArgv[0] = "./slave";
-  slaveArgv[1] = "fifo2";
-  slaveArgv[2] = argv[2];
-  slaveArgv[3] = NULL;
+    char *slaveArgv[3];
+    slaveArgv[0] = "./slave";
+    slaveArgv[1] = fifo;
+    slaveArgv[2] = argv[2];
+    slaveArgv[3] = NULL;
 
-  for (int i = 0; i < atoi(argv[1]); i++)
-  {
-    pid_t slave = fork();
-    if (slave == 0)
-    {
-      execvp(slaveArgv[0], slaveArgv);
-      return 0;
+    pid_t master = fork();
+    if (master == 0) {
+        execvp(masterArgv[0], masterArgv);
     }
-  }
 
-  while (slavesReady < atoi(argv[1]))
-  {
-  }
+    for (int i = 0; i < atoi(argv[1]); i++) {
+        pid_t slave = fork();
+        if (slave == 0) {
+            execvp(slaveArgv[0], slaveArgv);
+        }
+    }
 
-  kill(master, SIGRTMIN);
+    while (slavesReady < atoi(argv[1])) {
+    }
 
-  while (1)
-  {
+    kill(master, SIGRTMIN);
+
     waitpid(master, NULL, 0);
-  }
 
-  remove("fifo2");
-
-  return 0;
+    return 0;
 }

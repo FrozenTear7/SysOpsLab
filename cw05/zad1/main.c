@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     while ((read = getline(&line, &len, fp)) != -1)
         runprogArr(line);
 
-    close(fp);
+    fclose(fp);
 
     return 0;
 }
