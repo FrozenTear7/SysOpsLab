@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     FILE *fd = open(argv[1], "w");
     if (fd == NULL)
     {
-        perror("Slave - Error opening fifo");
+        perror("Slave - Error opening fifo.txt");
         remove(fd);
         exit(1);
     }

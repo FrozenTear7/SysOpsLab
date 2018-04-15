@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
     if (mkfifo(myfifo, 0666) == -1)
     {
-        printf("Error creating fifo\n");
+        printf("Error creating fifo.txt\n");
         remove(myfifo);
         return 1;
     }
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     FILE *fp = open(argv[1], "r");
     if (fp == NULL)
     {
-        perror("Master - Error opening fifo");
+        perror("Master - Error opening fifo.txt");
         remove(fp);
         exit(1);
     }
