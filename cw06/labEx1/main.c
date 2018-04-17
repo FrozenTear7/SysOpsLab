@@ -15,7 +15,6 @@ struct msgbuf {
 };
 
 int main(void) {
-    //key_t msqid = ftok("./main.c", 1);
     int msqid = msgget(IPC_PRIVATE, IPC_CREAT | 0600);
 
     struct msgbuf message;
@@ -27,29 +26,22 @@ int main(void) {
     strcpy(message.mtext, "Witaj swiecie");
     strcpy(message2.mtext, "Cala naprzod");
 
-    if (msgsnd(msqid, &message, sizeof(long) + (strlen(message.mtext) * sizeof(char)) + 1, 0) == -1) {
-        return 1;
-    }
-    if (msgsnd(msqid, &message2, sizeof(long) + (strlen(message2.mtext) * sizeof(char)) + 1, 0) == -1) {
-        return 1;
-    }
+    msgsnd(msqid, &message, sizeof(long) + (strlen(message.mtext) * sizeof(char)), 0);
+    msgsnd(msqid, &message2, sizeof(long) + (strlen(message2.mtext) * sizeof(char)), 0);
 
     struct msgbuf newMessage;
     struct msgbuf newMessage2;
-    if (msgrcv(msqid, &newMessage, 8192, 5, 0) == -1) {
+    if (msgrcv(msqid, &newMessage, BUF_SIZE, 5, 0) == -1) {
         return 1;
     }
-    if (msgrcv(msqid, &newMessage2, 8192, 6, 0) == -1) {
+    if (msgrcv(msqid, &newMessage2, BUF_SIZE, 6, 0) == -1) {
         return 1;
     }
 
     printf("%s\n", newMessage.mtext);
     printf("%s\n", newMessage2.mtext);
 
-    if (msgctl(msqid, IPC_RMID, NULL) == -1) {
-        return 1;
-    }
-
+    msgctl(msqid, IPC_RMID, NULL);
 
     return 0;
 }
