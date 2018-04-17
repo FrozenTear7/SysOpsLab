@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <unistd.h>
 #include <time.h>
 #include <fcntl.h>
@@ -27,7 +26,8 @@ int main(int argc, char **argv)
 
     while ((read = getline(&line, &len, fp)) != -1)
     {
-        char *pch, *tmp = line;
+        char *pch, *tmp = malloc(strlen(line) + 1);
+        strcpy(tmp, line);
 
         pch = strtok(tmp, " ");
         int i = 0, count = 0;
@@ -37,7 +37,9 @@ int main(int argc, char **argv)
             pch = strtok(NULL, " ");
         }
 
-        char *execArgv[count + 1];
+        free(tmp);
+
+        char *execArgv[count];
         pch = strtok(line, " ");
 
         while (i < count && pch != NULL)
@@ -48,27 +50,25 @@ int main(int argc, char **argv)
         }
 
         pid_t child_pid = fork();
-        if (child_pid == -1)
-        {
-            printf("Could not create child process!");
-            exit(3);
-        }
-        else if (child_pid == 0)
+        int status;
+
+        if (child_pid == 0)
         {
             printf("Current exec: %s\n", execArgv[0]);
+
             execvp(execArgv[0], execArgv);
-            printf("Exec: %s gave an errno: %d!\n", execArgv[0], errno);
             exit(1);
         }
-        else
+        else if (child_pid > 0)
         {
-            int status;
             waitpid(child_pid, &status, 0);
-            if (WIFEXITED(status) && (WEXITSTATUS(status) != 0))
-            {
-                printf("Error in: %s\n", execArgv[0]);
-                exit(1);
-            }
+        }
+
+        if (status != 0)
+        {
+            printf("Exec: %s gave an error! Status: %d\n", execArgv[0], status);
+            fclose(fp);
+            return 1;
         }
 
         printf("\n\n");

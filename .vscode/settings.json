@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "libblocks.h": "c"
+        "libblocks.h": "c",
+        "wait.h": "c",
+        "string.h": "c",
+        "types.h": "c"
     }
 }

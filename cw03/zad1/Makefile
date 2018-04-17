@@ -3,4 +3,4 @@ compileMain:
 	rm -rf
 
 exampleMain:
-	./main .. gt 1520893098
+	./main / gt 1520893098

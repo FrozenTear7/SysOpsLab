@@ -1,7 +1,7 @@
 compileMain:
-	gcc -Wall child.c -o child
 	gcc -Wall main.c -o main
 	rm -rf
 
-readExample:
+test:
+	gcc -Wall print.c -o print
 	./main instr.txt
