@@ -11,6 +11,7 @@
 
 int main(int argc, char **argv) {
     FILE *fp = fopen(argv[1], "a");
+    printf("My pid: %d\n", (int)getpid());
 
     for (int i = 0; i < atoi(argv[2]); i++) {
         char buffer[100], buffer2[50];
