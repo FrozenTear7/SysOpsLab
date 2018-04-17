@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 
     char mystring[100];
     if (fp == NULL) {
-        printf("Error opening fifo.txt");
+        printf("Error opening fifo");
         exit(1);
     }
 

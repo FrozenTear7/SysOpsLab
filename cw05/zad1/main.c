@@ -21,8 +21,6 @@ void runprogArr(char *line) {
     }
 
     pid_t *pids = malloc(progCount * sizeof(pid_t));
-    for (int i = 0; i < progCount; i++)
-        pids[i] = -1;
 
     int *pipes = malloc(2 * progCount * sizeof(int));
 
