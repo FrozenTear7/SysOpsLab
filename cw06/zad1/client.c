@@ -76,11 +76,11 @@ void rmQueue(void) {
         } else printf("Client's queue deleted successfully!\n");
     }
 }
-
+/*
 void intHandler(int signo) {
     exit(2);
 }
-
+*/
 int main(int argc, char **argv) {
     if (argc < 2)
         return 1;
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
         return 1;
 
     if (atexit(rmQueue) == -1) throww("Registering client's atexit failed!");
-    if (signal(SIGINT, intHandler) == SIG_ERR) throww("Registering INT failed!");
+    //if (signal(SIGINT, intHandler) == SIG_ERR) throww("Registering INT failed!");
 
     char *path = getenv("HOME");
     if (path == NULL) throww("Getting enviromental variable 'HOME' failed!");
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
     registerClient(privateKey);
 
     while ((read = getline(&line, &len, fp)) != -1) {
-        printf("%s\n", line);
+        //printf("%s\n", line);
         char **rqArgv = arguments(line);
         Msg msg;
         msg.senderPID = getpid();
@@ -172,15 +172,17 @@ void rqMirror(struct Msg *msg, char *str) {
 
 void rqCalc(struct Msg *msg, char *a, char *b, mtype rqType) {
     msg->mtype = rqType;
-    if (fgets(msg->cont, MAX_CONT_SIZE, stdin) == NULL) {
+    char buf[MAX_CONT_SIZE];
+    strcpy(buf, a);
+    strcat(buf, " ");
+    strcat(buf, b);
+    if (strlen(buf) > MAX_CONT_SIZE) {
         printf("Too many characters!\n");
         return;
     }
-    strcpy(msg->cont, a);
-    strcpy(msg->cont, " ");
-    strcpy(msg->cont, b);
-    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) throww("UPPER request failed!");
-    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) throww("catching UPPER response failed!");
+    strcpy(msg->cont, buf);
+    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) throww("CALC request failed!");
+    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) throww("catching CALC response failed!");
     printf("%s", msg->cont);
 }
 

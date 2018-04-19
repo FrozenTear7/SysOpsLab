@@ -159,8 +159,14 @@ void publicQueueExecute(struct Msg *msg) {
             doMirror(msg);
             break;
         case ADD:
+            doCalc(msg, msg->mtype);
+            break;
         case MUL:
+            doCalc(msg, msg->mtype);
+            break;
         case SUB:
+            doCalc(msg, msg->mtype);
+            break;
         case DIV:
             doCalc(msg, msg->mtype);
             break;
@@ -203,6 +209,7 @@ void doMirror(struct Msg *msg) {
     if (clientQID == -1) return;
 
     reverse(msg->cont);
+    strcat(msg->cont, "\n");
 
     if (msgsnd(clientQID, msg, MSG_SIZE, 0) == -1) throww("MIRROR response failed!");
 }
@@ -217,20 +224,20 @@ void doCalc(struct Msg *msg, mtype rqType) {
     switch (rqType) {
         case ADD: {
             result = atoi(rqArgv[0]) + atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d", result);
+            sprintf(msg->cont, "%d\n", result);
         }
             break;
         case MUL:
             result = atoi(rqArgv[0]) * atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d", result);
+            sprintf(msg->cont, "%d\n", result);
             break;
         case SUB:
             result = atoi(rqArgv[0]) - atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d", result);
+            sprintf(msg->cont, "%d\n", result);
             break;
         case DIV:
             result = atoi(rqArgv[0]) / atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d", result);
+            sprintf(msg->cont, "%d\n", result);
             break;
     }
 

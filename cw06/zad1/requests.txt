@@ -1,1 +1,6 @@
+mirror xd
+time
 mul 1 2
+add 4 100
+sub 9 4
+div 8 2
