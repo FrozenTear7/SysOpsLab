@@ -16,29 +16,18 @@
 #define PROJECT_ID 37
 #define MAX_CONT_SIZE 50
 
-char **arguments(char *line) {
-    int argc = 0;
-    char **argv = malloc(3 * sizeof(char *));
-
-    char *current_arg = NULL;
-    while ((current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL && argc < 3) {
-        argv[argc++] = current_arg;
-    }
-
-    return argv;
-}
-
-void throww(const char *err) {
-    printf("Error! %s Errno: %d\n", err, errno);
-    exit(3);
-}
-
 int getQID(char *path, int ID) {
     int key = ftok(path, ID);
-    if (key == -1) throww("Generation of key failed!");
+    if (key == -1) {
+        puts("Ftok error");
+        exit(1);
+    }
 
     int QID = msgget(key, 0);
-    if (QID == -1) throww("Opening queue failed!");
+    if (QID == -1) {
+        puts("Couldnt open the queue");
+        exit(1);
+    }
 
     return QID;
 }
@@ -55,7 +44,9 @@ typedef struct Msg {
 
 const size_t MSG_SIZE = sizeof(Msg) - sizeof(long);
 
-void registerClient(key_t privateKey);
+char **arguments(char *line);
+
+void loginClient(key_t keyPrivate);
 
 void rqMirror(struct Msg *msg, char *str);
 
@@ -72,21 +63,19 @@ int privateID = -1;
 void rmQueue(void) {
     if (privateID > -1) {
         if (msgctl(privateID, IPC_RMID, NULL) == -1) {
-            printf("There was some error deleting clients's queue!\n");
-        } else printf("Client's queue deleted successfully!\n");
+            puts("Queue removal error");
+        } else
+            puts("Queue deleted");
     }
 }
-/*
-void intHandler(int signo) {
-    exit(2);
-}
-*/
+
 int main(int argc, char **argv) {
     if (argc < 2)
         return 1;
 
     FILE *fp;
-    char *line;
+    char *line, *path;
+    key_t keyPrivate;
     size_t len = 0;
     int read;
 
@@ -94,21 +83,29 @@ int main(int argc, char **argv) {
     if (fp == NULL)
         return 1;
 
-    if (atexit(rmQueue) == -1) throww("Registering client's atexit failed!");
-    //if (signal(SIGINT, intHandler) == SIG_ERR) throww("Registering INT failed!");
+    if (atexit(rmQueue) == -1) {
+        puts("Atexit error");
+        return 1;
+    }
 
-    char *path = getenv("HOME");
-    if (path == NULL) throww("Getting enviromental variable 'HOME' failed!");
+    if ((path = getenv("HOME")) == NULL) {
+        puts("Couldnt get home env");
+        return 1;
+    }
 
     publicID = getQID(path, PROJECT_ID);
 
-    key_t privateKey = ftok(path, getpid());
-    if (privateKey == -1) throww("Generation of private key failed!");
+    if ((keyPrivate = ftok(path, getpid())) == -1) {
+        puts("Couldnt get private key");
+        return 1;
+    }
 
-    privateID = msgget(privateKey, IPC_CREAT | IPC_EXCL | 0666);
-    if (privateID == -1) throww("Creation of private queue failed!");
+    if ((privateID = msgget(keyPrivate, IPC_CREAT | IPC_EXCL | 0666)) == -1) {
+        printf("Errno: %d\n", errno);
+        return 1;
+    }
 
-    registerClient(privateKey);
+    loginClient(keyPrivate);
 
     while ((read = getline(&line, &len, fp)) != -1) {
         //printf("%s\n", line);
@@ -136,7 +133,8 @@ int main(int argc, char **argv) {
             rqEnd(&msg);
         } else if (strcmp(rqArgv[0], "q") == 0) {
             exit(0);
-        } else printf("Wrong command!\n");
+        } else
+            puts("Wrong argument");
     }
 
     fclose(fp);
@@ -144,29 +142,59 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-void registerClient(key_t privateKey) {
+char **arguments(char *line) {
+    int argc = 0;
+    char **argv = malloc(3 * sizeof(char *));
+
+    char *current_arg = NULL;
+    while ((current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL && argc < 3) {
+        argv[argc++] = current_arg;
+    }
+
+    return argv;
+}
+
+void loginClient(key_t keyPrivate) {
     Msg msg;
     msg.mtype = LOGIN;
     msg.senderPID = getpid();
-    sprintf(msg.cont, "%d", privateKey);
+    sprintf(msg.cont, "%d", keyPrivate);
 
-    if (msgsnd(publicID, &msg, MSG_SIZE, 0) == -1) throww("LOGIN request failed!");
-    if (msgrcv(privateID, &msg, MSG_SIZE, 0, 0) == -1) throww("catching LOGIN response failed!");
-    if (sscanf(msg.cont, "%d", &sessionID) < 1) throww("scanning LOGIN response failed!");
-    if (sessionID < 0) throww("Server cannot have more clients!");
+    if (msgsnd(publicID, &msg, MSG_SIZE, 0) == -1) {
+        puts("Login request error");
+        exit(1);
+    }
+    if (msgrcv(privateID, &msg, MSG_SIZE, 0, 0) == -1) {
+        puts("Couldnt receive login response");
+        exit(1);
+    }
+    if (sscanf(msg.cont, "%d", &sessionID) < 1) {
+        puts("Couldnt read login response");
+        exit(1);
+    }
+    if (sessionID < 0) {
+        puts("Client limit");
+        exit(1);
+    }
 
-    printf("Client registered! My session nr is %d!\n", sessionID);
+    printf("Logged in: %d!\n", sessionID);
 }
 
 void rqMirror(struct Msg *msg, char *str) {
     msg->mtype = MIRROR;
     if (strlen(str) > MAX_CONT_SIZE) {
         printf("Too many characters!\n");
-        return;
+        exit(1);
     }
     strcpy(msg->cont, str);
-    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) throww("MIRROR request failed!");
-    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) throww("catching MIRROR response failed!");
+    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
+        puts("Mirror request error");
+        exit(1);
+    }
+    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) {
+        puts("Mirror response error");
+        exit(1);
+    }
     printf("%s", msg->cont);
 }
 
@@ -178,24 +206,39 @@ void rqCalc(struct Msg *msg, char *a, char *b, mtype rqType) {
     strcat(buf, b);
     if (strlen(buf) > MAX_CONT_SIZE) {
         printf("Too many characters!\n");
-        return;
+        exit(1);
     }
     strcpy(msg->cont, buf);
-    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) throww("CALC request failed!");
-    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) throww("catching CALC response failed!");
+    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
+        puts("Calc request error");
+        exit(1);
+    }
+    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) {
+        puts("Calc response error");
+        exit(1);
+    }
     printf("%s", msg->cont);
 }
 
 void rqTime(struct Msg *msg) {
     msg->mtype = TIME;
 
-    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) throww("TIME request failed!");
-    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) throww("catching TIME response failed!");
+    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
+        puts("Time request error");
+        exit(1);
+    }
+    if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) {
+        puts("Time response error");
+        exit(1);
+    }
     printf("%s\n", msg->cont);
 }
 
 void rqEnd(struct Msg *msg) {
     msg->mtype = END;
 
-    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) throww("END request failed!");
+    if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
+        puts("End request error");
+        exit(1);
+    }
 }

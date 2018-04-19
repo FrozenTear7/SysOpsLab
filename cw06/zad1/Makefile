@@ -1,6 +1,6 @@
 CC: gcc -Wall
 
 all:
-	$(CC) client.c -o client
-	$(CC) server.c -o server
+	$(CC) -o client client.c
+	$(CC) -o server server.c
 	rm -rf
