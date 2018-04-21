@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -16,20 +15,19 @@
 #define PROJECT_ID 37
 #define MAX_CONT_SIZE 50
 
-int getQID(char *path, int ID) {
-    int key = ftok(path, ID);
-    if (key == -1) {
+int getQueueId(char *path, int ID) {
+    int key, queueId;
+    if ((key = ftok(path, ID)) == -1) {
         puts("Ftok error");
-        exit(1);
+        exit(0);
     }
 
-    int QID = msgget(key, 0);
-    if (QID == -1) {
+    if ((queueId = msgget(key, 0)) == -1) {
         puts("Couldnt open the queue");
-        exit(1);
+        exit(0);
     }
 
-    return QID;
+    return queueId;
 }
 
 typedef enum mtype {
@@ -44,30 +42,25 @@ typedef struct Msg {
 
 const size_t MSG_SIZE = sizeof(Msg) - sizeof(long);
 
+int sessionID = -1;
+int publicID = -1;
+int privateID = -1;
+
 char **arguments(char *line);
 
 void loginClient(key_t keyPrivate);
 
-void rqMirror(struct Msg *msg, char *str);
+void requestMirror(struct Msg *msg, char *str);
 
-void rqCalc(struct Msg *msg, char *a, char *b, mtype rqType);
+void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType);
 
-void rqTime(struct Msg *msg);
+void requestTime(struct Msg *msg);
 
-void rqEnd(struct Msg *msg);
+void requestEnd(struct Msg *msg);
 
-int sessionID = -2;
-int publicID = -1;
-int privateID = -1;
+void deleteQueue();
 
-void rmQueue(void) {
-    if (privateID > -1) {
-        if (msgctl(privateID, IPC_RMID, NULL) == -1) {
-            puts("Queue removal error");
-        } else
-            puts("Queue deleted");
-    }
-}
+void sigintHandler(int signum);
 
 int main(int argc, char **argv) {
     if (argc < 2)
@@ -83,8 +76,13 @@ int main(int argc, char **argv) {
     if (fp == NULL)
         return 1;
 
-    if (atexit(rmQueue) == -1) {
-        puts("Atexit error");
+    if (atexit(deleteQueue) == -1) {
+        puts("Couldnt set atexit");
+        return 1;
+    }
+
+    if (signal(SIGINT, sigintHandler) == SIG_ERR) {
+        puts("Signal error for SIGINT");
         return 1;
     }
 
@@ -93,7 +91,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    publicID = getQID(path, PROJECT_ID);
+    publicID = getQueueId(path, PROJECT_ID);
 
     if ((keyPrivate = ftok(path, getpid())) == -1) {
         puts("Couldnt get private key");
@@ -101,37 +99,32 @@ int main(int argc, char **argv) {
     }
 
     if ((privateID = msgget(keyPrivate, IPC_CREAT | IPC_EXCL | 0666)) == -1) {
-        printf("Errno: %d\n", errno);
+        puts("Msgget error");
         return 1;
     }
 
     loginClient(keyPrivate);
 
     while ((read = getline(&line, &len, fp)) != -1) {
-        //printf("%s\n", line);
-        char **rqArgv = arguments(line);
+        char **requestArgv = arguments(line);
         Msg msg;
         msg.senderPID = getpid();
-/*
-        for(int i = 0; i < 3; i++)
-            if(rqArgv[i])
-                printf("%s\n", rqArgv[i]);*/
 
-        if (strcmp(rqArgv[0], "mirror") == 0) {
-            rqMirror(&msg, rqArgv[1]);
-        } else if (strcmp(rqArgv[0], "add") == 0) {
-            rqCalc(&msg, rqArgv[1], rqArgv[2], ADD);
-        } else if (strcmp(rqArgv[0], "mul") == 0) {
-            rqCalc(&msg, rqArgv[1], rqArgv[2], MUL);
-        } else if (strcmp(rqArgv[0], "sub") == 0) {
-            rqCalc(&msg, rqArgv[1], rqArgv[2], SUB);
-        } else if (strcmp(rqArgv[0], "div") == 0) {
-            rqCalc(&msg, rqArgv[1], rqArgv[2], DIV);
-        } else if (strcmp(rqArgv[0], "time") == 0) {
-            rqTime(&msg);
-        } else if (strcmp(rqArgv[0], "end") == 0) {
-            rqEnd(&msg);
-        } else if (strcmp(rqArgv[0], "q") == 0) {
+        if (strcmp(requestArgv[0], "mirror") == 0) {
+            requestMirror(&msg, requestArgv[1]);
+        } else if (strcmp(requestArgv[0], "add") == 0) {
+            requestCalc(&msg, requestArgv[1], requestArgv[2], ADD);
+        } else if (strcmp(requestArgv[0], "mul") == 0) {
+            requestCalc(&msg, requestArgv[1], requestArgv[2], MUL);
+        } else if (strcmp(requestArgv[0], "sub") == 0) {
+            requestCalc(&msg, requestArgv[1], requestArgv[2], SUB);
+        } else if (strcmp(requestArgv[0], "div") == 0) {
+            requestCalc(&msg, requestArgv[1], requestArgv[2], DIV);
+        } else if (strcmp(requestArgv[0], "time") == 0) {
+            requestTime(&msg);
+        } else if (strcmp(requestArgv[0], "end") == 0) {
+            requestEnd(&msg);
+        } else if (strcmp(requestArgv[0], "q") == 0) {
             exit(0);
         } else
             puts("Wrong argument");
@@ -162,83 +155,110 @@ void loginClient(key_t keyPrivate) {
 
     if (msgsnd(publicID, &msg, MSG_SIZE, 0) == -1) {
         puts("Login request error");
-        exit(1);
+        exit(0);
     }
+
     if (msgrcv(privateID, &msg, MSG_SIZE, 0, 0) == -1) {
         puts("Couldnt receive login response");
-        exit(1);
+        exit(0);
     }
+
     if (sscanf(msg.cont, "%d", &sessionID) < 1) {
         puts("Couldnt read login response");
-        exit(1);
+        exit(0);
     }
+
     if (sessionID < 0) {
         puts("Client limit");
-        exit(1);
+        exit(0);
     }
 
     printf("Logged in: %d!\n", sessionID);
 }
 
-void rqMirror(struct Msg *msg, char *str) {
+void requestMirror(struct Msg *msg, char *str) {
     msg->mtype = MIRROR;
     if (strlen(str) > MAX_CONT_SIZE) {
-        printf("Too many characters!\n");
-        exit(1);
+        puts("Too many characters");
+        exit(0);
     }
+
     strcpy(msg->cont, str);
+
     if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
         puts("Mirror request error");
-        exit(1);
+        exit(0);
     }
+
     if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) {
         puts("Mirror response error");
-        exit(1);
+        exit(0);
     }
-    printf("%s", msg->cont);
+
+    puts(msg->cont);
 }
 
-void rqCalc(struct Msg *msg, char *a, char *b, mtype rqType) {
-    msg->mtype = rqType;
+void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
+    msg->mtype = requestType;
     char buf[MAX_CONT_SIZE];
     strcpy(buf, a);
     strcat(buf, " ");
     strcat(buf, b);
+
     if (strlen(buf) > MAX_CONT_SIZE) {
-        printf("Too many characters!\n");
-        exit(1);
+        puts("Too many characters");
+        exit(0);
     }
+
     strcpy(msg->cont, buf);
+
     if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
         puts("Calc request error");
-        exit(1);
+        exit(0);
     }
+
     if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) {
         puts("Calc response error");
-        exit(1);
+        exit(0);
     }
-    printf("%s", msg->cont);
+
+    puts(msg->cont);
 }
 
-void rqTime(struct Msg *msg) {
+void requestTime(struct Msg *msg) {
     msg->mtype = TIME;
 
     if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
         puts("Time request error");
-        exit(1);
+        exit(0);
     }
+
     if (msgrcv(privateID, msg, MSG_SIZE, 0, 0) == -1) {
         puts("Time response error");
-        exit(1);
+        exit(0);
     }
-    printf("%s\n", msg->cont);
+
+    puts(msg->cont);
 }
 
-void rqEnd(struct Msg *msg) {
+void requestEnd(struct Msg *msg) {
     msg->mtype = END;
 
     if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
         puts("End request error");
-        exit(1);
+        exit(0);
     }
+}
+
+void deleteQueue() {
+    if (privateID != -1) {
+        if (msgctl(privateID, IPC_RMID, NULL) == -1) {
+            puts("Queue deletion error");
+        } else
+            puts("Queue deleted");
+    }
+}
+
+void sigintHandler(int signum) {
+    exit(0);
 }
