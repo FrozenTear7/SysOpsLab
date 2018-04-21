@@ -11,36 +11,7 @@
 #include <time.h>
 #include <signal.h>
 
-#define MAX_CLIENTS  10
-#define PROJECT_ID 37
-#define MAX_CONT_SIZE 50
-
-int getQueueId(char *path, int ID) {
-    int key, queueId;
-    if ((key = ftok(path, ID)) == -1) {
-        puts("Ftok error");
-        exit(0);
-    }
-
-    if ((queueId = msgget(key, 0)) == -1) {
-        puts("Couldnt open the queue");
-        exit(0);
-    }
-
-    return queueId;
-}
-
-typedef enum mtype {
-    LOGIN = 1, MIRROR = 2, ADD = 3, MUL = 4, SUB = 5, DIV = 6, TIME = 7, END = 8, INIT = 9
-} mtype;
-
-typedef struct Msg {
-    long mtype;
-    pid_t senderPID;
-    char cont[MAX_CONT_SIZE];
-} Msg;
-
-const size_t MSG_SIZE = sizeof(Msg) - sizeof(long);
+#include "info.h"
 
 int sessionID = -1;
 int publicID = -1;
@@ -61,6 +32,8 @@ void requestEnd(struct Msg *msg);
 void deleteQueue();
 
 void sigintHandler(int signum);
+
+int getQueueId(char *path, int ID);
 
 int main(int argc, char **argv) {
     if (argc < 2)
@@ -261,4 +234,19 @@ void deleteQueue() {
 
 void sigintHandler(int signum) {
     exit(0);
+}
+
+int getQueueId(char *path, int ID) {
+    int key, queueId;
+    if ((key = ftok(path, ID)) == -1) {
+        puts("Ftok error");
+        exit(0);
+    }
+
+    if ((queueId = msgget(key, 0)) == -1) {
+        puts("Couldnt open the queue");
+        exit(0);
+    }
+
+    return queueId;
 }

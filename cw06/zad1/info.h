@@ -2,11 +2,11 @@
 #define COMMUNICATION_H
 
 #define MAX_CLIENTS  10
-#define PROJECT_ID 37
+#define PROJECT_ID 1
 #define MAX_CONT_SIZE 50
 
 typedef enum mtype {
-    LOGIN = 1, ECHO = 2, UPPER = 3, TIME = 4, END = 5, INIT = 6
+    LOGIN = 1, MIRROR = 2, ADD = 3, MUL = 4, SUB = 5, DIV = 6, TIME = 7, END = 8, INIT = 9
 } mtype;
 
 typedef struct Msg {
