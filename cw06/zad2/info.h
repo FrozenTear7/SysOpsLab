@@ -5,9 +5,10 @@
 #define PROJECT_ID 1
 #define MAX_CONT_SIZE 50
 #define MSG_SIZE sizeof(Msg)
+#define MAX_MQSIZE 9
 
 typedef enum mtype {
-    LOGIN = 1, MIRROR = 2, ADD = 3, MUL = 4, SUB = 5, DIV = 6, TIME = 7, END = 8, INIT = 9
+    LOGIN = 1, MIRROR = 2, ADD = 3, MUL = 4, SUB = 5, DIV = 6, TIME = 7, END = 8, INIT = 9, QUIT = 10
 } mtype;
 
 typedef struct Msg {
@@ -15,5 +16,7 @@ typedef struct Msg {
     pid_t senderPID;
     char cont[MAX_CONT_SIZE];
 } Msg;
+
+const char serverPath[] = "/server";
 
 #endif
