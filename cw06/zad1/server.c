@@ -29,6 +29,8 @@ void execTime(struct Msg *msg);
 
 void execEnd(struct Msg *msg);
 
+void execQuit(struct Msg *msg);
+
 int findQueueID(pid_t senderPID);
 
 int prepareMsg(struct Msg *msg);
@@ -99,6 +101,9 @@ void execRequest(struct Msg *msg) {
             break;
         case END:
             execEnd(msg);
+            break;
+        case QUIT:
+            execQuit(msg);
             break;
         default:
             break;
@@ -203,6 +208,27 @@ void execTime(struct Msg *msg) {
 
 void execEnd(struct Msg *msg) {
     active = 0;
+}
+
+void execQuit(struct Msg *msg) {
+    int i;
+
+    for (i = 0; i < clientCount; i++) {
+        if (clientsData[i][0] == msg->senderPID)
+            break;
+    }
+
+    if (i == clientCount) {
+        printf("Client Not Found!\n");
+        return;
+    }
+
+    for (i = i; i + 1 < clientCount; i++) {
+        clientsData[i][0] = clientsData[i + 1][0];
+        clientsData[i][1] = clientsData[i + 1][1];
+    }
+
+    clientCount--;
 }
 
 int prepareMsg(struct Msg *msg) {

@@ -14,7 +14,7 @@
 
 int active = 1;
 int clientsData[MAX_CLIENTS][2];
-int clientCnt = 0;
+int clientCount = 0;
 mqd_t publicID = -1;
 
 void execRequest(struct Msg *msg);
@@ -28,6 +28,8 @@ void execCalc(struct Msg *msg, mtype rqType);
 void execTime(struct Msg *msg);
 
 void execEnd(struct Msg *msg);
+
+void execQuit(struct Msg *msg);
 
 int findMQD(pid_t senderPID);
 
@@ -62,10 +64,7 @@ int main(int argc, char **argv) {
 
     while (1) {
         if (active == 0) {
-            if (mq_getattr(publicID, &currentState) == -1) {
-                puts("Couldnt read public queue parameters");
-                return 1;
-            }
+            mq_getattr(publicID, &currentState);
             if (currentState.mq_curmsgs == 0)
                 return 1;
         }
@@ -104,6 +103,9 @@ void execRequest(struct Msg *msg) {
         case END:
             execEnd(msg);
             break;
+        case QUIT:
+            execQuit(msg);
+            break;
         default:
             break;
     }
@@ -122,7 +124,7 @@ void execLogin(struct Msg *msg) {
     msg->mtype = INIT;
     msg->senderPID = getpid();
 
-    if (clientCnt > MAX_CLIENTS - 1) {
+    if (clientCount > MAX_CLIENTS - 1) {
         puts("Maximum amount of clients reached");
         sprintf(msg->mtext, "%d", -1);
         if (mq_send(clientMQD, (char *) msg, MSG_SIZE, 1) == -1) {
@@ -134,9 +136,9 @@ void execLogin(struct Msg *msg) {
             return;
         }
     } else {
-        clientsData[clientCnt][0] = clientPID;
-        clientsData[clientCnt++][1] = clientMQD;
-        sprintf(msg->mtext, "%d", clientCnt - 1);
+        clientsData[clientCount][0] = clientPID;
+        clientsData[clientCount++][1] = clientMQD;
+        sprintf(msg->mtext, "%d", clientCount - 1);
         if (mq_send(clientMQD, (char *) msg, MSG_SIZE, 1) == -1) {
             puts("Login response error");
             return;
@@ -145,8 +147,9 @@ void execLogin(struct Msg *msg) {
 }
 
 void execMirror(struct Msg *msg) {
-    int clientQueueId = prepareMsg(msg);
-    if (clientQueueId == -1) return;
+    int clientQueueId;
+    if ((clientQueueId = prepareMsg(msg)) == -1)
+        return;
 
     reverse(msg->mtext);
     strcat(msg->mtext, "\n");
@@ -159,7 +162,6 @@ void execMirror(struct Msg *msg) {
 
 void execCalc(struct Msg *msg, mtype rqType) {
     int clientQueueId;
-
     if ((clientQueueId = prepareMsg(msg)) == -1)
         return;
 
@@ -212,6 +214,32 @@ void execEnd(struct Msg *msg) {
     active = 0;
 }
 
+void execQuit(struct Msg *msg) {
+    int i;
+
+    for (i = 0; i < clientCount; i++) {
+        if (clientsData[i][0] == msg->senderPID)
+            break;
+    }
+
+    if (i == clientCount) {
+        printf("Client Not Found!\n");
+        return;
+    }
+
+    if (mq_close(clientsData[i][1]) == -1) {
+        puts("Couldnt close client's queue");
+        return;
+    }
+
+    for (i = i; i + 1 < clientCount; i++) {
+        clientsData[i][0] = clientsData[i + 1][0];
+        clientsData[i][1] = clientsData[i + 1][1];
+    }
+
+    clientCount--;
+}
+
 int prepareMsg(struct Msg *msg) {
     int clientMQD = findMQD(msg->senderPID);
     if (clientMQD == -1) {
@@ -226,7 +254,7 @@ int prepareMsg(struct Msg *msg) {
 }
 
 int findMQD(pid_t senderPID) {
-    for (int i = 0; i < clientCnt; i++) {
+    for (int i = 0; i < clientCount; i++) {
         if (clientsData[i][0] == senderPID)
             return clientsData[i][1];
     }
@@ -234,10 +262,11 @@ int findMQD(pid_t senderPID) {
 }
 
 void deleteQueue() {
-    for (int i = 0; i < clientCnt; i++) {
+    for (int i = 0; i < clientCount; i++) {
         if (mq_close(clientsData[i][1]) == -1) {
-            printf("Error closing %d client queue\n", i);
+            printf("Couldnt close client %d queue\n", i);
         }
+
         kill(clientsData[i][0], SIGINT);
     }
     if (publicID > -1) {
@@ -249,9 +278,9 @@ void deleteQueue() {
         if (mq_unlink(serverPath) == -1)
             puts("Error deleting public Queue");
         else
-            puts("Server queue deleted successfully");
+            puts("Server queue deleted");
     } else
-        puts("There was no need of deleting queue");
+        puts("No queues to delete");
 }
 
 char **arguments(char *line) {

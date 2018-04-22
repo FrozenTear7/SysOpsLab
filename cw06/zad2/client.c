@@ -141,7 +141,7 @@ void loginClient() {
 
 void requestMirror(struct Msg *msg, char *str) {
     msg->mtype = MIRROR;
-    if (strlen(str) > MAX_CONT_SIZE) {
+    if (strlen(str) > MAX_MTEXT_SIZE) {
         puts("Too many characters");
         exit(0);
     }
@@ -163,12 +163,12 @@ void requestMirror(struct Msg *msg, char *str) {
 
 void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
     msg->mtype = requestType;
-    char buf[MAX_CONT_SIZE];
+    char buf[MAX_MTEXT_SIZE];
     strcpy(buf, a);
     strcat(buf, " ");
     strcat(buf, b);
 
-    if (strlen(buf) > MAX_CONT_SIZE) {
+    if (strlen(buf) > MAX_MTEXT_SIZE) {
         puts("Too many characters");
         exit(0);
     }
@@ -217,13 +217,13 @@ void requestQueue(struct Msg *msg) {
     msg->mtype = QUIT;
 
     if (mq_send(publicID, (char *) msg, MSG_SIZE, 1) == -1)
-        puts("End request error");
+        puts("Quit request error");
 }
 
 void deleteQueue() {
-    if (privateID > -1) {
+    if (privateID != -1) {
         if (sessionID >= 0) {
-            puts("Before quitting, i will try to send QUIT request to public queue");
+            puts("Ask server to close queue");
             Msg msg;
             msg.senderPID = getpid();
             requestQueue(&msg);
@@ -242,9 +242,9 @@ void deleteQueue() {
         if (mq_unlink(myPath) == -1)
             puts("Couldnt delete queue");
         else
-            puts("Queue closed");
+            puts("Queue deleted");
     } else
-        puts("There was no need of deleting queue");
+        puts("No queue to delete");
 }
 
 void sigintHandler(int signum) {

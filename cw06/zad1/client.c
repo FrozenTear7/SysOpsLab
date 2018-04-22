@@ -131,7 +131,7 @@ void loginClient(key_t keyPrivate) {
 
 void requestMirror(struct Msg *msg, char *str) {
     msg->mtype = MIRROR;
-    if (strlen(str) > MAX_CONT_SIZE) {
+    if (strlen(str) > MAX_MTEXT_SIZE) {
         puts("Too many characters");
         exit(0);
     }
@@ -153,12 +153,12 @@ void requestMirror(struct Msg *msg, char *str) {
 
 void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
     msg->mtype = requestType;
-    char buf[MAX_CONT_SIZE];
+    char buf[MAX_MTEXT_SIZE];
     strcpy(buf, a);
     strcat(buf, " ");
     strcat(buf, b);
 
-    if (strlen(buf) > MAX_CONT_SIZE) {
+    if (strlen(buf) > MAX_MTEXT_SIZE) {
         puts("Too many characters");
         exit(0);
     }
@@ -203,10 +203,20 @@ void requestEnd(struct Msg *msg) {
     }
 }
 
+void requestQueue(struct Msg *msg) {
+    msg->mtype = QUIT;
+
+    if (msgsnd(publicID, (char *) msg, MSG_SIZE, 0) == -1)
+        puts("Quit request error");
+}
+
 void deleteQueue() {
     if (privateID != -1) {
         msgctl(privateID, IPC_RMID, NULL);
         puts("Queue deleted");
+        Msg msg;
+        msg.senderPID = getpid();
+        requestQueue(&msg);
     }
 }
 

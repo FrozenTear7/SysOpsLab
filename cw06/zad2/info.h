@@ -1,9 +1,9 @@
 #ifndef INFO_H
 #define INFO_H
 
-#define MAX_CLIENTS  10
+#define MAX_CLIENTS  5
 #define PROJECT_ID 1
-#define MAX_CONT_SIZE 50
+#define MAX_MTEXT_SIZE 50
 #define MSG_SIZE sizeof(Msg)
 #define MAX_MQSIZE 9
 
@@ -14,9 +14,9 @@ typedef enum mtype {
 typedef struct Msg {
     long mtype;
     pid_t senderPID;
-    char mtext[MAX_CONT_SIZE];
+    char mtext[MAX_MTEXT_SIZE];
 } Msg;
 
-const char serverPath[] = "/server";
+const char *serverPath = "/server";
 
 #endif
