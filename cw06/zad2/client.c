@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -53,20 +51,11 @@ int main(int argc, char **argv) {
     if (fp == NULL)
         return 1;
 
-    if (atexit(deleteQueue) == -1) {
-        puts("Couldnt set atexit");
-        return 1;
-    }
-
-    if (signal(SIGINT, sigintHandler) == SIG_ERR) {
-        puts("Signal error for SIGINT");
-        return 1;
-    }
-
+    atexit(deleteQueue);
+    signal(SIGINT, sigintHandler);
     sprintf(myPath, "/%d", getpid());
 
-    publicID = mq_open(serverPath, O_WRONLY);
-    if (publicID == -1) {
+    if ((publicID = mq_open(serverPath, O_WRONLY)) == -1) {
         puts("Couldnt open public queue");
         return 1;
     }
@@ -75,8 +64,7 @@ int main(int argc, char **argv) {
     posixAttr.mq_maxmsg = MAX_MQSIZE;
     posixAttr.mq_msgsize = MSG_SIZE;
 
-    privateID = mq_open(myPath, O_RDONLY | O_CREAT | O_EXCL, 0666, &posixAttr);
-    if (privateID == -1) {
+    if ((privateID = mq_open(myPath, O_RDONLY | O_CREAT | O_EXCL, 0666, &posixAttr)) == -1) {
         puts("Couldnt create private queues");
         return 1;
     }
@@ -138,7 +126,7 @@ void loginClient() {
         exit(0);
     }
 
-    if (sscanf(msg.cont, "%d", &sessionID) < 1) {
+    if (sscanf(msg.mtext, "%d", &sessionID) < 1) {
         puts("Couldnt read login response");
         exit(0);
     }
@@ -158,7 +146,7 @@ void requestMirror(struct Msg *msg, char *str) {
         exit(0);
     }
 
-    strcpy(msg->cont, str);
+    strcpy(msg->mtext, str);
 
     if (mq_send(publicID, (char *) msg, MSG_SIZE, 1) == -1) {
         puts("Mirror request error");
@@ -170,7 +158,7 @@ void requestMirror(struct Msg *msg, char *str) {
         exit(0);
     }
 
-    puts(msg->cont);
+    puts(msg->mtext);
 }
 
 void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
@@ -185,7 +173,7 @@ void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
         exit(0);
     }
 
-    strcpy(msg->cont, buf);
+    strcpy(msg->mtext, buf);
 
     if (mq_send(publicID, (char *) msg, MSG_SIZE, 1) == -1) {
         puts("Calc request error");
@@ -197,7 +185,7 @@ void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
         exit(0);
     }
 
-    puts(msg->cont);
+    puts(msg->mtext);
 }
 
 void requestTime(struct Msg *msg) {
@@ -213,7 +201,7 @@ void requestTime(struct Msg *msg) {
         exit(0);
     }
 
-    puts(msg->cont);
+    puts(msg->mtext);
 }
 
 void requestEnd(struct Msg *msg) {
@@ -229,7 +217,7 @@ void requestQueue(struct Msg *msg) {
     msg->mtype = QUIT;
 
     if (mq_send(publicID, (char *) msg, MSG_SIZE, 1) == -1)
-        puts("END request failed - Server may have already been closed");
+        puts("End request error");
 }
 
 void deleteQueue() {
@@ -242,19 +230,19 @@ void deleteQueue() {
         }
 
         if (mq_close(publicID) == -1)
-            puts("There was some error closing servers's queue");
+            puts("Couldnt not close server's queue");
         else
-            puts("Servers's queue closed successfully");
+            puts("Server's queue closed");
 
         if (mq_close(privateID) == -1)
-            puts("There was some error closing client's queue");
+            puts("Couldnt close queue");
         else
-            puts("Client's queue closed successfully");
+            puts("Queue closed");
 
         if (mq_unlink(myPath) == -1)
-            puts("There was some error deleting client's queue");
+            puts("Couldnt delete queue");
         else
-            puts("Client's queue deleted successfully");
+            puts("Queue closed");
     } else
         puts("There was no need of deleting queue");
 }

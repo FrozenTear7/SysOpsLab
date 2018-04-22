@@ -15,7 +15,7 @@
 int publicID = -2;
 int active = 1;
 int clientsData[MAX_CLIENTS][2];
-int clientCnt = 0;
+int clientCount = 0;
 
 void execRequest(struct Msg *msg);
 
@@ -47,25 +47,10 @@ int main(int argc, char **argv) {
     struct msqid_ds currentState;
     Msg buff;
 
-    if (atexit(deleteQueue) == -1) {
-        puts("Couldnt set atexit");
-        return 1;
-    }
-
-    if (signal(SIGINT, intHandler) == SIG_ERR) {
-        puts("Signal error for SIGINT");
-        return 1;
-    }
-
-    if ((path = getenv("HOME")) == NULL) {
-        puts("Couldnt get home env");
-        return 1;
-    }
-
-    if ((publicKey = ftok(path, PROJECT_ID)) == -1) {
-        puts("Couldnt generate publicKey");
-        return 1;
-    }
+    atexit(deleteQueue);
+    signal(SIGINT, intHandler);
+    path = getenv("HOME");
+    publicKey = ftok(path, PROJECT_ID);
 
     if ((publicID = msgget(publicKey, IPC_CREAT | IPC_EXCL | 0666)) == -1) {
         puts("Couldnt create public queue");
@@ -76,11 +61,7 @@ int main(int argc, char **argv) {
 
     while (1) {
         if (active == 0) {
-            if (msgctl(publicID, IPC_STAT, &currentState) == -1) {
-                puts("Couldnt get queue state");
-                return 1;
-            }
-
+            msgctl(publicID, IPC_STAT, &currentState);
             if (currentState.msg_qnum == 0)
                 break;
         }
@@ -126,13 +107,13 @@ void execRequest(struct Msg *msg) {
 
 void execLogin(struct Msg *msg) {
     key_t clientQueueKey;
-    if (sscanf(msg->cont, "%d", &clientQueueKey) < 0) {
+    int clientQueueId;
+    if (sscanf(msg->mtext, "%d", &clientQueueKey) < 0) {
         puts("Couldnt read client key");
         return;
     }
 
-    int clientQueueId = msgget(clientQueueKey, 0);
-    if (clientQueueId == -1) {
+    if ((clientQueueId = msgget(clientQueueKey, 0)) == -1) {
         puts("Couldnt read clientID");
         return;
     }
@@ -141,13 +122,13 @@ void execLogin(struct Msg *msg) {
     msg->mtype = INIT;
     msg->senderPID = getpid();
 
-    if (clientCnt > MAX_CLIENTS - 1) {
+    if (clientCount > MAX_CLIENTS - 1) {
         puts("Clients limit");
-        sprintf(msg->cont, "%d", -1);
+        sprintf(msg->mtext, "%d", -1);
     } else {
-        clientsData[clientCnt][0] = clientPID;
-        clientsData[clientCnt++][1] = clientQueueId;
-        sprintf(msg->cont, "%d", clientCnt - 1);
+        clientsData[clientCount][0] = clientPID;
+        clientsData[clientCount++][1] = clientQueueId;
+        sprintf(msg->mtext, "%d", clientCount - 1);
     }
 
     if (msgsnd(clientQueueId, msg, MSG_SIZE, 0) == -1) {
@@ -160,8 +141,8 @@ void execMirror(struct Msg *msg) {
     int clientQueueId = prepareMsg(msg);
     if (clientQueueId == -1) return;
 
-    reverse(msg->cont);
-    strcat(msg->cont, "\n");
+    reverse(msg->mtext);
+    strcat(msg->mtext, "\n");
 
     if (msgsnd(clientQueueId, msg, MSG_SIZE, 0) == -1) {
         puts("Mirror request error");
@@ -175,25 +156,25 @@ void execCalc(struct Msg *msg, mtype rqType) {
     if ((clientQueueId = prepareMsg(msg)) == -1)
         return;
 
-    char **rqArgv = arguments(msg->cont);
+    char **rqArgv = arguments(msg->mtext);
     int result;
 
     switch (rqType) {
         case ADD:
             result = atoi(rqArgv[0]) + atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d\n", result);
+            sprintf(msg->mtext, "%d\n", result);
             break;
         case MUL:
             result = atoi(rqArgv[0]) * atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d\n", result);
+            sprintf(msg->mtext, "%d\n", result);
             break;
         case SUB:
             result = atoi(rqArgv[0]) - atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d\n", result);
+            sprintf(msg->mtext, "%d\n", result);
             break;
         case DIV:
             result = atoi(rqArgv[0]) / atoi(rqArgv[1]);
-            sprintf(msg->cont, "%d\n", result);
+            sprintf(msg->mtext, "%d\n", result);
             break;
     }
 
@@ -212,7 +193,7 @@ void execTime(struct Msg *msg) {
     FILE *f = popen("date", "r");
     fgets(buf, sizeof(buf), f);
     pclose(f);
-    strcpy(msg->cont, buf);
+    strcpy(msg->mtext, buf);
 
     if (msgsnd(clientQueueId, msg, MSG_SIZE, 0) == -1) {
         puts("Time request error");
@@ -249,10 +230,7 @@ int findQueueID(pid_t senderPID) {
 void deleteQueue() {
     int tmp;
     if (publicID != -1) {
-        if ((tmp = msgctl(publicID, IPC_RMID, NULL)) == -1) {
-            puts("Error while deleting server's queue");
-        }
-
+        tmp = msgctl(publicID, IPC_RMID, NULL);
         puts("Server's queue deleted");
     }
 }

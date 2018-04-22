@@ -13,7 +13,7 @@ typedef enum mtype {
 typedef struct Msg {
     long mtype;
     pid_t senderPID;
-    char cont[MAX_CONT_SIZE];
+    char mtext[MAX_CONT_SIZE];
 } Msg;
 
 #endif

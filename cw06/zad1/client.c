@@ -47,27 +47,11 @@ int main(int argc, char **argv) {
     if (fp == NULL)
         return 1;
 
-    if (atexit(deleteQueue) == -1) {
-        puts("Couldnt set atexit");
-        return 1;
-    }
-
-    if (signal(SIGINT, sigintHandler) == SIG_ERR) {
-        puts("Signal error for SIGINT");
-        return 1;
-    }
-
-    if ((path = getenv("HOME")) == NULL) {
-        puts("Couldnt get home env");
-        return 1;
-    }
-
+    atexit(deleteQueue);
+    signal(SIGINT, sigintHandler);
+    path = getenv("HOME");
     publicID = getQueueId(path, PROJECT_ID);
-
-    if ((keyPrivate = ftok(path, getpid())) == -1) {
-        puts("Couldnt get private key");
-        return 1;
-    }
+    keyPrivate = ftok(path, getpid());
 
     if ((privateID = msgget(keyPrivate, IPC_CREAT | IPC_EXCL | 0666)) == -1) {
         puts("Msgget error");
@@ -120,7 +104,7 @@ void loginClient(key_t keyPrivate) {
     Msg msg;
     msg.mtype = LOGIN;
     msg.senderPID = getpid();
-    sprintf(msg.cont, "%d", keyPrivate);
+    sprintf(msg.mtext, "%d", keyPrivate);
 
     if (msgsnd(publicID, &msg, MSG_SIZE, 0) == -1) {
         puts("Login request error");
@@ -132,7 +116,7 @@ void loginClient(key_t keyPrivate) {
         exit(0);
     }
 
-    if (sscanf(msg.cont, "%d", &sessionID) < 1) {
+    if (sscanf(msg.mtext, "%d", &sessionID) < 1) {
         puts("Couldnt read login response");
         exit(0);
     }
@@ -152,7 +136,7 @@ void requestMirror(struct Msg *msg, char *str) {
         exit(0);
     }
 
-    strcpy(msg->cont, str);
+    strcpy(msg->mtext, str);
 
     if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
         puts("Mirror request error");
@@ -164,7 +148,7 @@ void requestMirror(struct Msg *msg, char *str) {
         exit(0);
     }
 
-    puts(msg->cont);
+    puts(msg->mtext);
 }
 
 void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
@@ -179,7 +163,7 @@ void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
         exit(0);
     }
 
-    strcpy(msg->cont, buf);
+    strcpy(msg->mtext, buf);
 
     if (msgsnd(publicID, msg, MSG_SIZE, 0) == -1) {
         puts("Calc request error");
@@ -191,7 +175,7 @@ void requestCalc(struct Msg *msg, char *a, char *b, mtype requestType) {
         exit(0);
     }
 
-    puts(msg->cont);
+    puts(msg->mtext);
 }
 
 void requestTime(struct Msg *msg) {
@@ -207,7 +191,7 @@ void requestTime(struct Msg *msg) {
         exit(0);
     }
 
-    puts(msg->cont);
+    puts(msg->mtext);
 }
 
 void requestEnd(struct Msg *msg) {
@@ -221,10 +205,8 @@ void requestEnd(struct Msg *msg) {
 
 void deleteQueue() {
     if (privateID != -1) {
-        if (msgctl(privateID, IPC_RMID, NULL) == -1) {
-            puts("Queue deletion error");
-        } else
-            puts("Queue deleted");
+        msgctl(privateID, IPC_RMID, NULL);
+        puts("Queue deleted");
     }
 }
 
@@ -234,10 +216,7 @@ void sigintHandler(int signum) {
 
 int getQueueId(char *path, int ID) {
     int key, queueId;
-    if ((key = ftok(path, ID)) == -1) {
-        puts("Ftok error");
-        exit(0);
-    }
+    key = ftok(path, ID);
 
     if ((queueId = msgget(key, 0)) == -1) {
         puts("Couldnt open the queue");
