@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
 #include <mqueue.h>
 #include <ctype.h>
-#include <time.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/stat.h>
@@ -65,7 +62,7 @@ int main(int argc, char **argv) {
     posixAttr.mq_msgsize = MSG_SIZE;
 
     if ((privateID = mq_open(myPath, O_RDONLY | O_CREAT | O_EXCL, 0666, &posixAttr)) == -1) {
-        puts("Couldnt create private queues");
+        puts("Couldnt create private queue");
         return 1;
     }
 
@@ -223,16 +220,15 @@ void requestQueue(struct Msg *msg) {
 void deleteQueue() {
     if (privateID != -1) {
         if (sessionID >= 0) {
-            puts("Ask server to close queue");
             Msg msg;
             msg.senderPID = getpid();
             requestQueue(&msg);
         }
 
         if (mq_close(publicID) == -1)
-            puts("Couldnt not close server's queue");
+            puts("Couldnt not close server queue");
         else
-            puts("Server's queue closed");
+            puts("Server queue closed");
 
         if (mq_close(privateID) == -1)
             puts("Couldnt close queue");

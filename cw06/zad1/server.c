@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <ctype.h>
-#include <time.h>
 #include <signal.h>
 
 #include "info.h"
@@ -257,7 +254,7 @@ void deleteQueue() {
     int tmp;
     if (publicID != -1) {
         tmp = msgctl(publicID, IPC_RMID, NULL);
-        puts("Server's queue deleted");
+        puts("Server queue deleted");
     }
 }
 

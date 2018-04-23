@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
 #include <mqueue.h>
 #include <ctype.h>
-#include <time.h>
 #include <fcntl.h>
 #include <signal.h>
 
@@ -228,7 +226,7 @@ void execQuit(struct Msg *msg) {
     }
 
     if (mq_close(clientsData[i][1]) == -1) {
-        puts("Couldnt close client's queue");
+        puts("Couldnt close client queue");
         return;
     }
 
