@@ -9,7 +9,7 @@
 
 #include "info.h"
 
-int publicID = -2;
+int publicID = -1;
 int active = 1;
 int clientsData[MAX_CLIENTS][2];
 int clientCount = 0;
@@ -235,7 +235,6 @@ int prepareMsg(struct Msg *msg) {
         return -1;
     }
 
-    msg->mtype = msg->senderPID;
     msg->senderPID = getpid();
 
     return clientQueueId;

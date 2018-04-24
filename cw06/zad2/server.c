@@ -245,7 +245,6 @@ int prepareMsg(struct Msg *msg) {
         return -1;
     }
 
-    msg->mtype = msg->senderPID;
     msg->senderPID = getpid();
 
     return clientMQD;
