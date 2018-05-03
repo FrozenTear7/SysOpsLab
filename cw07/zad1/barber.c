@@ -18,8 +18,8 @@
 
 key_t fifoKey;
 Fifo *fifo = NULL;
-int semId = -1;
 int shmID = -1;
+int semId = -1;
 
 long getMicroTime() {
     struct timespec marker;
@@ -29,7 +29,7 @@ long getMicroTime() {
 }
 
 void fifoSet(int n) {
-    fifoKey = ftok(getenv("HOME"), 1);
+    fifoKey = ftok(getenv("HOME"), 5);
 
     shmID = shmget(fifoKey, sizeof(Fifo), IPC_CREAT | IPC_EXCL | 0666);
 
@@ -52,6 +52,10 @@ void atexitClear() {
     shmdt(fifo);
     shmctl(shmID, IPC_RMID, NULL);
     semctl(semId, 0, IPC_RMID);
+}
+
+void intHandler(int signum) {
+    exit(1);
 }
 
 void cut(pid_t pid) {
@@ -110,6 +114,7 @@ int main(int argc, char **argv) {
     if (argc < 2)
         return 0;
 
+    signal(SIGINT, intHandler);
     atexit(atexitClear);
 
     fifoSet(atoi(argv[1]));
