@@ -9,7 +9,7 @@
 
 //helpers
 
-#define keyId 1
+#define keyId 2
 const char env[] = "HOME";
 
 typedef enum semType {
