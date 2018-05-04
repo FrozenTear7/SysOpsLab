@@ -10,18 +10,10 @@
 //helpers
 
 #define keyId 2
-const char env[] = "HOME";
 
 typedef enum semType {
     BARBER = 0, FIFO = 1, CHECKER = 2
 } semType;
-
-void throww(const char *err) {
-    printf("Error! %s Errno: %d, %s\n", err, errno,
-           strerror(errno)
-    );
-    exit(3);
-}
 
 long timeMs() {
     struct timespec timer;

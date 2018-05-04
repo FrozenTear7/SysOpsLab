@@ -17,56 +17,59 @@
 #include "info.h"
 
 key_t fifoKey;
-int shmID = -1;
 Fifo *fifo = NULL;
 int semId = -1;
+int shmID = -1;
 
 void cut(pid_t pid) {
-    printf("Time: %ld, Barber: preparing to cut %d\n", timeMs(), pid);
+    printf("Start cutting %d, Time: %ld\n", pid, timeMs());
 
     kill(pid, SIGRTMIN);
 
-    printf("Time: %ld, Barber: finished cutting %d\n", timeMs(), pid);
+    printf("End cutting %d, Time: %ld\n", pid, timeMs());
 }
 
-pid_t takeChair(struct sembuf *sops) {
+pid_t sitClient(struct sembuf *sops) {
     sops->sem_num = FIFO;
     sops->sem_op = -1;
     semop(semId, sops, 1);
 
-    pid_t toCut = fifo->chair;
+    pid_t nextClient = fifo->chair;
+    printf("Sit %d, Time: %ld\n", nextClient, timeMs());
 
     sops->sem_op = 1;
     semop(semId, sops, 1);
 
-    return toCut;
+    return nextClient;
 }
 
-void napAndWorkForever() {
+void work() {
     while (1) {
         struct sembuf sops;
+
         sops.sem_num = BARBER;
         sops.sem_op = -1;
         sops.sem_flg = 0;
-
         semop(semId, &sops, 1);
 
-        pid_t toCut = takeChair(&sops);
-        cut(toCut);
+        printf("AWAKENING, Time: %ld\n", timeMs());
+        pid_t nextClient = sitClient(&sops);
+        cut(nextClient);
 
         while (1) {
             sops.sem_num = FIFO;
             sops.sem_op = -1;
             semop(semId, &sops, 1);
-            toCut = fifoPop(fifo);
 
-            if (toCut != -1) {
+            nextClient = fifoPop(fifo);
+
+            if (nextClient != -1) {
+                printf("Sit %d, Time: %ld\n", nextClient, timeMs());
                 sops.sem_op = 1;
                 semop(semId, &sops, 1);
-                cut(toCut);
+                cut(nextClient);
             } else {
-                long timeMarker = timeMs();
-                printf("Time: %ld, Barber: going to sleep...\n", timeMarker);
+                printf("Sleep, Time: %ld\n", timeMs());
                 sops.sem_num = BARBER;
                 sops.sem_op = -1;
                 semop(semId, &sops, 1);
@@ -80,30 +83,13 @@ void napAndWorkForever() {
     }
 }
 
-void prepareFifo(int chNum) {
-    fifoKey = ftok(getenv(env), keyId);
-    shmID = shmget(fifoKey, sizeof(Fifo), IPC_CREAT | IPC_EXCL | 0666);
-    fifo = (Fifo *) shmat(shmID, NULL, 0);
-
-    fifoInit(fifo, chNum);
-}
-
-void prepareSemafors() {
-    semId = semget(fifoKey, 4, IPC_CREAT | IPC_EXCL | 0666);
-
-    for (int i = 1; i < 3; i++)
-        semctl(semId, i, SETVAL, 1);
-
-    semctl(semId, 0, SETVAL, 0);
-}
-
-void clearResources(void) {
+void atexitHandler(void) {
     shmdt(fifo);
     shmctl(shmID, IPC_RMID, NULL);
     semctl(semId, 0, IPC_RMID);
 }
 
-void intHandler(int signo) {
+void sigintHandler(int signum) {
     exit(2);
 }
 
@@ -111,12 +97,22 @@ int main(int argc, char **argv) {
     if (argc < 2)
         return 0;
 
-    atexit(clearResources);
-    signal(SIGINT, intHandler);
+    atexit(atexitHandler);
+    signal(SIGINT, sigintHandler);
 
-    prepareFifo(atoi(argv[1]));
-    prepareSemafors();
-    napAndWorkForever();
+    fifoKey = ftok(getenv("HOME"), keyId);
+    shmID = shmget(fifoKey, sizeof(Fifo), IPC_CREAT | IPC_EXCL | 0666);
+    fifo = (Fifo *) shmat(shmID, NULL, 0);
+
+    fifoInit(fifo, atoi(argv[1]));
+
+    semId = semget(fifoKey, 4, IPC_CREAT | IPC_EXCL | 0666);
+
+    semctl(semId, 0, SETVAL, 0);
+    semctl(semId, 1, SETVAL, 1);
+    semctl(semId, 2, SETVAL, 1);
+
+    work();
 
     return 0;
 }
