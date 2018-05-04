@@ -19,7 +19,7 @@
 key_t fifoKey;
 Fifo *fifo = NULL;
 int semId = -1;
-int shmID = -1;
+int shmId = -1;
 
 void cut(pid_t pid) {
     printf("Start cutting %d, Time: %ld\n", pid, timeMs());
@@ -35,8 +35,10 @@ pid_t sitClient(struct sembuf *sops) {
     semop(semId, sops, 1);
 
     pid_t nextClient = fifo->chair;
+
     printf("Sit %d, Time: %ld\n", nextClient, timeMs());
 
+    sops->sem_num = FIFO;
     sops->sem_op = 1;
     semop(semId, sops, 1);
 
@@ -46,10 +48,10 @@ pid_t sitClient(struct sembuf *sops) {
 void work() {
     while (1) {
         struct sembuf sops;
+        sops.sem_flg = 0;
 
         sops.sem_num = BARBER;
         sops.sem_op = -1;
-        sops.sem_flg = 0;
         semop(semId, &sops, 1);
 
         printf("AWAKENING, Time: %ld\n", timeMs());
@@ -65,11 +67,15 @@ void work() {
 
             if (nextClient != -1) {
                 printf("Sit %d, Time: %ld\n", nextClient, timeMs());
+
+                sops.sem_num = FIFO;
                 sops.sem_op = 1;
                 semop(semId, &sops, 1);
+
                 cut(nextClient);
             } else {
-                printf("Sleep, Time: %ld\n", timeMs());
+                printf("SLEEP, Time: %ld\n", timeMs());
+
                 sops.sem_num = BARBER;
                 sops.sem_op = -1;
                 semop(semId, &sops, 1);
@@ -77,6 +83,7 @@ void work() {
                 sops.sem_num = FIFO;
                 sops.sem_op = 1;
                 semop(semId, &sops, 1);
+
                 break;
             }
         }
@@ -85,12 +92,12 @@ void work() {
 
 void atexitHandler(void) {
     shmdt(fifo);
-    shmctl(shmID, IPC_RMID, NULL);
+    shmctl(shmId, IPC_RMID, NULL);
     semctl(semId, 0, IPC_RMID);
 }
 
 void sigintHandler(int signum) {
-    exit(2);
+    exit(1);
 }
 
 int main(int argc, char **argv) {
@@ -101,12 +108,12 @@ int main(int argc, char **argv) {
     signal(SIGINT, sigintHandler);
 
     fifoKey = ftok(getenv("HOME"), keyId);
-    shmID = shmget(fifoKey, sizeof(Fifo), IPC_CREAT | IPC_EXCL | 0666);
-    fifo = (Fifo *) shmat(shmID, NULL, 0);
+    shmId = shmget(fifoKey, sizeof(Fifo), IPC_CREAT | IPC_EXCL | 0666);
+    fifo = (Fifo *) shmat(shmId, NULL, 0);
 
     fifoInit(fifo, atoi(argv[1]));
 
-    semId = semget(fifoKey, 4, IPC_CREAT | IPC_EXCL | 0666);
+    semId = semget(fifoKey, 3, IPC_CREAT | IPC_EXCL | 0666);
 
     semctl(semId, 0, SETVAL, 0);
     semctl(semId, 1, SETVAL, 1);
