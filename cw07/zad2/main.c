@@ -4,25 +4,26 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/ipc.h>
 #include <sys/msg.h>
 #include <ctype.h>
 #include <time.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/shm.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
 #include <sys/wait.h>
+#include <semaphore.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "info.h"
 
-key_t fifoKey;
 Fifo *fifo = NULL;
-sigset_t sigMask
-int semId = -1;
-int shmId = -1;
+sigset_t sigMask;
 int counter = 0;
+sem_t *BARBER;
+sem_t *FIFO;
+sem_t *CHECKER;
+sem_t *SLOWER;
 
 void sigintHandler(int signum) {
     exit(1);
@@ -33,20 +34,13 @@ void sigrtminHandler(int signum) {
 }
 
 int takePlace() {
-    int barberStat = semctl(semId, 0, GETVAL);
+    int barberStat;
+    sem_getvalue(BARBER, &barberStat);
 
     if (barberStat == 0) {
-        struct sembuf sops;
-
-        sops.sem_num = 0;
-        sops.sem_op = 1;
-        sops.sem_flg = 0;
-
-        semop(semId, &sops, 1);
-
+        sem_post(BARBER);
         printf("%d wakes barber up, Time: %ld\n", getpid(), timeMs());
-
-        semop(semId, &sops, 1);
+        sem_wait(SLOWER);
 
         fifo->chair = getpid();
 
@@ -65,7 +59,11 @@ int takePlace() {
 }
 
 void atexitHandler() {
-    shmdt(fifo);
+    munmap(fifo, sizeof(fifo));
+    sem_close(BARBER);
+    sem_close(FIFO);
+    sem_close(CHECKER);
+    sem_close(SLOWER);
 }
 
 int main(int argc, char **argv) {
@@ -76,39 +74,25 @@ int main(int argc, char **argv) {
     signal(SIGINT, sigintHandler);
     signal(SIGRTMIN, sigrtminHandler);
 
-    fifoKey = ftok(getenv("HOME"), keyId);
-    shmId = shmget(fifoKey, 0, 0);
-    fifo = (Fifo *) shmat(shmId, NULL, 0);
+    fifo = (Fifo *) mmap(NULL, sizeof(Fifo), PROT_READ | PROT_WRITE, MAP_SHARED, shm_open("/shm", O_RDWR, 0666), 0);
 
-    semId = semget(fifoKey, 0, 0);
+    BARBER = sem_open("/barber", O_CREAT | O_EXCL | O_RDWR, 0666, 0);
+    FIFO = sem_open("/fifo", O_CREAT | O_EXCL | O_RDWR, 0666, 1);
+    CHECKER = sem_open("/checker", O_CREAT | O_EXCL | O_RDWR, 0666, 1);
+    SLOWER = sem_open("/slower", O_CREAT | O_EXCL | O_RDWR, 0666, 0);
 
     for (int i = 0; i < atoi(argv[1]); i++) {
         pid_t id = fork();
 
         if (id == 0) {
             while (counter < atoi(argv[2])) {
-                struct sembuf sops;
-                sops.sem_flg = 0;
-
-                sops.sem_num = 2;
-                sops.sem_op = -1;
-                semop(semId, &sops, 1);
-
-                sops.sem_num = 1;
-                sops.sem_op = -1;
-                semop(semId, &sops, 1);
+                sem_wait(CHECKER);
+                sem_wait(FIFO);
 
                 int res = takePlace();
 
-                printf("%d sit, Time: %ld\n", getpid(), timeMs());
-
-                sops.sem_num = 1;
-                sops.sem_op = 1;
-                semop(semId, &sops, 1);
-
-                sops.sem_num = 2;
-                sops.sem_op = 1;
-                semop(semId, &sops, 1);
+                sem_post(FIFO);
+                sem_post(CHECKER);
 
                 if (res != -1) {
                     sigsuspend(&sigMask);
