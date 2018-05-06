@@ -86,7 +86,7 @@ void work() {
     }
 }
 
-void atexitHandler(void) {
+void atexitHandler() {
     shmdt(fifo);
     shmctl(shmId, IPC_RMID, NULL);
     semctl(semId, 0, IPC_RMID);
