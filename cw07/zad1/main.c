@@ -20,7 +20,7 @@ int shmId = -1;
 int counter = 0;
 
 int takePlace() {
-    if (semctl(semId, 0, GETVAL) == 0) {
+    if (semctl(semId, BARBER, GETVAL) == 0) {
         struct sembuf sops;
 
         sops.sem_num = BARBER;
