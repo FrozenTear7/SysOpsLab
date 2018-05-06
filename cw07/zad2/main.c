@@ -1,5 +1,3 @@
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -20,15 +18,9 @@
 
 #include "info.h"
 
-void intHandler(int signo) {
-    exit(2);
-}
-
 void prepareFifo();
 
 void prepareSemafors();
-
-void prepareFullMask();
 
 int takePlace();
 
@@ -40,9 +32,13 @@ sem_t *FIFO;
 sem_t *CHECKER;
 sem_t *SLOWER;
 int counter = 0;
-sigset_t fullMask;
+sigset_t sigMask;
 
-void rtminHandler(int signo) {
+void sigintHandler(int signum) {
+    exit(1);
+}
+
+void sigrtminHandler(int signum) {
     counter++;
 }
 
@@ -59,17 +55,42 @@ int main(int argc, char **argv) {
         return 0;
 
     atexit(atexitHandler);
-    signal(SIGINT, intHandler);
-    signal(SIGRTMIN, rtminHandler);
+    signal(SIGINT, sigintHandler);
+    signal(SIGRTMIN, sigrtminHandler);
 
-    prepareFifo();
-    prepareSemafors();
+    int shmID = shm_open(shmPath, O_RDWR, 0666);
+    fifo = (Fifo *) mmap(NULL, sizeof(Fifo), PROT_READ | PROT_WRITE, MAP_SHARED, shmID, 0);
+
+    BARBER = sem_open(barberPath, O_RDWR);
+    FIFO = sem_open(fifoPath, O_RDWR);
+    CHECKER = sem_open(checkerPath, O_RDWR);
+    SLOWER = sem_open(slowerPath, O_RDWR);
 
     for (int i = 0; i < atoi(argv[1]); i++) {
         pid_t id = fork();
 
         if (id == 0) {
-            getCut(atoi(argv[2]));
+            while (counter < atoi(argv[2])) {
+                sem_wait(CHECKER);
+
+                sem_wait(FIFO);
+
+                int res = takePlace();
+
+                printf("%d sit, Time: %ld\n", getpid(), timeMs());
+
+                sem_post(FIFO);
+
+                sem_post(CHECKER);
+
+                if (res != -1) {
+                    sigsuspend(&sigMask);
+                    printf("%d cut, Time: %ld\n", getpid(), timeMs());
+                }
+            }
+
+            printf("%d leave, Time: %ld\n", getpid(), timeMs());
+
             return 0;
         }
     }
@@ -97,7 +118,7 @@ void getCut(int ctsNum) {
         if (sem_post(CHECKER) == -1) throww("Client: releasing checker failed!");
 
         if (res != -1) {
-            sigsuspend(&fullMask);
+            sigsuspend(&sigMask);
             long timeMarker = timeMs();
             printf("Time: %ld, Client %d just got cut!\n", timeMarker, getpid());
             fflush(stdout);
@@ -136,35 +157,4 @@ int takePlace() {
             return 0;
         }
     }
-}
-
-void prepareFifo() {
-    int shmID = shm_open(shmPath, O_RDWR, 0666);
-    if (shmID == -1) throww("Breeder: opening shared memory failed!");
-
-    //if(ftruncate(shmID, sizeof(Fifo)) == -1) throww("Breeder: truncating shm failed!");
-
-    void *tmp = mmap(NULL, sizeof(Fifo), PROT_READ | PROT_WRITE, MAP_SHARED, shmID, 0);
-    if (tmp == (void *) (-1)) throww("Breeder: attaching shm failed!");
-    fifo = (Fifo *) tmp;
-}
-
-void prepareSemafors() {
-    BARBER = sem_open(barberPath, O_RDWR);
-    if (BARBER == SEM_FAILED) throww("Breeder: creating semafors failed!");
-
-    FIFO = sem_open(fifoPath, O_RDWR);
-    if (FIFO == SEM_FAILED) throww("Breeder: creating semafors failed!");
-
-    CHECKER = sem_open(checkerPath, O_RDWR);
-    if (CHECKER == SEM_FAILED) throww("Breeder: creating semafors failed!");
-
-    SLOWER = sem_open(slowerPath, O_RDWR);
-    if (SLOWER == SEM_FAILED) throww("Breeder: creating semafors failed!");
-}
-
-void prepareFullMask() {
-    if (sigfillset(&fullMask) == -1) throww("Breeder: sigfillset failed!");
-    if (sigdelset(&fullMask, SIGRTMIN) == -1) throww("Breeder: removing sigrtmin from fullMask failed!");
-    if (sigdelset(&fullMask, SIGINT) == -1) throww("Breeder: removing sigint from fullMask failed!");
 }
