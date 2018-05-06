@@ -9,7 +9,19 @@
 
 //helpers
 
-#define keyId 2
+#define keyId 1
+const char shmPath[] = "/shm";
+const char barberPath[] = "/barber";
+const char fifoPath[] = "/fifo";
+const char checkerPath[] = "/checker";
+const char slowerPath[] = "/slower";
+
+void throww(const char *err) {
+    printf("Error! %s Errno: %d, %s\n", err, errno,
+           strerror(errno)
+    );
+    exit(3);
+}
 
 long timeMs() {
     struct timespec timer;
@@ -24,8 +36,8 @@ typedef struct Fifo {
     int size;
     int head;
     int tail;
-    pid_t tab[1000];
     pid_t chair;
+    pid_t tab[1000];
 } Fifo;
 
 void fifoInit(Fifo *fifo, int n) {
@@ -64,7 +76,7 @@ pid_t fifoPop(Fifo *fifo) {
     return fifo->chair;
 }
 
-int fifoPush(Fifo *fifo, pid_t pid) {
+int fifoPush(Fifo *fifo, pid_t x) {
     if (fifoFull(fifo) == 1)
         return -1;
 
@@ -72,7 +84,7 @@ int fifoPush(Fifo *fifo, pid_t pid) {
         fifo->head = fifo->tail;
     }
 
-    fifo->tab[fifo->tail++] = pid;
+    fifo->tab[fifo->tail++] = x;
 
     if (fifo->tail == fifo->size)
         fifo->tail = 0;

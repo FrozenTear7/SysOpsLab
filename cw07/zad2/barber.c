@@ -4,21 +4,21 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/ipc.h>
 #include <sys/msg.h>
 #include <ctype.h>
 #include <time.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <semaphore.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
+#include <semaphore.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include "info.h"
 
-key_t fifoKey;
 Fifo *fifo = NULL;
+
 sem_t *BARBER;
 sem_t *FIFO;
 sem_t *CHECKER;
@@ -32,7 +32,7 @@ void cut(pid_t pid) {
     printf("End cutting %d, Time: %ld\n", pid, timeMs());
 }
 
-pid_t sitClient() {
+pid_t takeChair() {
     sem_wait(FIFO);
 
     pid_t nextClient = fifo->chair;
@@ -51,7 +51,7 @@ void work() {
         sem_post(SLOWER);
 
         printf("AWAKENING, Time: %ld\n", timeMs());
-        pid_t nextClient = sitClient();
+        pid_t nextClient = takeChair();
         cut(nextClient);
 
         while (1) {
@@ -69,6 +69,7 @@ void work() {
                 printf("SLEEP, Time: %ld\n", timeMs());
 
                 sem_wait(BARBER);
+
                 sem_post(FIFO);
 
                 break;
@@ -77,17 +78,17 @@ void work() {
     }
 }
 
-void atexitHandler(void) {
+void atexitHandler() {
     munmap(fifo, sizeof(fifo));
-    shm_unlink("/shm");
+    shm_unlink(shmPath);
     sem_close(BARBER);
-    sem_unlink("/barber");
+    sem_unlink(barberPath);
     sem_close(FIFO);
-    sem_unlink("/fifo");
+    sem_unlink(fifoPath);
     sem_close(CHECKER);
-    sem_unlink("/checker");
+    sem_unlink(checkerPath);
     sem_close(SLOWER);
-    sem_unlink("/slower");
+    sem_unlink(slowerPath);
 }
 
 void sigintHandler(int signum) {
@@ -101,16 +102,16 @@ int main(int argc, char **argv) {
     atexit(atexitHandler);
     signal(SIGINT, sigintHandler);
 
-    int shmID = shm_open("/shm", O_CREAT | O_EXCL | O_RDWR, 0666);
+    int shmID = shm_open(shmPath, O_CREAT | O_EXCL | O_RDWR, 0666);
     ftruncate(shmID, sizeof(Fifo));
-    fifo = (Fifo *) mmap(NULL, sizeof(Fifo), PROT_READ | PROT_WRITE, MAP_SHARED, shmID, 0);
 
+    fifo = (Fifo *) mmap(NULL, sizeof(Fifo), PROT_READ | PROT_WRITE, MAP_SHARED, shmID, 0);
     fifoInit(fifo, atoi(argv[1]));
 
-    BARBER = sem_open("/barber", O_CREAT | O_EXCL | O_RDWR, 0666, 0);
-    FIFO = sem_open("/fifo", O_CREAT | O_EXCL | O_RDWR, 0666, 1);
-    CHECKER = sem_open("/checker", O_CREAT | O_EXCL | O_RDWR, 0666, 1);
-    SLOWER = sem_open("/slower", O_CREAT | O_EXCL | O_RDWR, 0666, 0);
+    BARBER = sem_open(barberPath, O_CREAT | O_EXCL | O_RDWR, 0666, 0);
+    FIFO = sem_open(fifoPath, O_CREAT | O_EXCL | O_RDWR, 0666, 1);
+    CHECKER = sem_open(checkerPath, O_CREAT | O_EXCL | O_RDWR, 0666, 1);
+    SLOWER = sem_open(slowerPath, O_CREAT | O_EXCL | O_RDWR, 0666, 0);
 
     work();
 

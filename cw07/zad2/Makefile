@@ -1,6 +1,4 @@
-CC: gcc -Wall
-
 all:
-	$(CC) -o main main.c -lrt -pthread
-	$(CC) -o barber barber.c -lrt -pthread
+	gcc -Wall main.c -o main -lrt -pthread
+	gcc -Wall barber.c -o barber -lrt -pthread
 	rm -rf

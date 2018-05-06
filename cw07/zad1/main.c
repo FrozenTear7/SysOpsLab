@@ -19,7 +19,7 @@
 
 key_t fifoKey;
 Fifo *fifo = NULL;
-sigset_t sigMask
+sigset_t sigMask;
 int semId = -1;
 int shmId = -1;
 int counter = 0;
