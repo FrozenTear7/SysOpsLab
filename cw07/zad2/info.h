@@ -10,6 +10,7 @@
 //helpers
 
 #define keyId 1
+
 const char shmPath[] = "/shm";
 const char barberPath[] = "/barber";
 const char fifoPath[] = "/fifo";

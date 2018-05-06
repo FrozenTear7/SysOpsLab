@@ -24,14 +24,6 @@ int semId = -1;
 int shmId = -1;
 int counter = 0;
 
-void sigintHandler(int signum) {
-    exit(1);
-}
-
-void sigrtminHandler(int signum) {
-    counter++;
-}
-
 int takePlace() {
     int barberStat = semctl(semId, 0, GETVAL);
 
@@ -62,6 +54,14 @@ int takePlace() {
             return 0;
         }
     }
+}
+
+void sigintHandler(int signum) {
+    exit(1);
+}
+
+void sigrtminHandler(int signum) {
+    counter++;
 }
 
 void atexitHandler() {
