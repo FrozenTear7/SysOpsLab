@@ -4,10 +4,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <time.h>
 
 //helpers
+
+#define BARBER 0
+#define CLIENTS 1
+#define BLOCK 2
 
 #define keyId 2
 

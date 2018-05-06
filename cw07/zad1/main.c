@@ -1,19 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <ctype.h>
-#include <time.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/shm.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-#include <sys/wait.h>
 
 #include "info.h"
 
@@ -28,13 +22,13 @@ int takePlace() {
     if (semctl(semId, 0, GETVAL) == 0) {
         struct sembuf sops;
 
-        sops.sem_num = 0;
+        sops.sem_num = BARBER;
         sops.sem_op = 1;
         sops.sem_flg = 0;
 
         semop(semId, &sops, 1);
 
-        printf("%d wakes barber up, Time: %ld\n", getpid(), timeMs());
+        printf("%d wake barber up, Time: %ld\n", getpid(), timeMs());
 
         semop(semId, &sops, 1);
 
@@ -88,11 +82,11 @@ int main(int argc, char **argv) {
                 struct sembuf sops;
                 sops.sem_flg = 0;
 
-                sops.sem_num = 2;
+                sops.sem_num = BLOCK;
                 sops.sem_op = -1;
                 semop(semId, &sops, 1);
 
-                sops.sem_num = 1;
+                sops.sem_num = CLIENTS;
                 sops.sem_op = -1;
                 semop(semId, &sops, 1);
 
@@ -100,11 +94,11 @@ int main(int argc, char **argv) {
 
                 printf("%d sit, Time: %ld\n", getpid(), timeMs());
 
-                sops.sem_num = 1;
+                sops.sem_num = CLIENTS;
                 sops.sem_op = 1;
                 semop(semId, &sops, 1);
 
-                sops.sem_num = 2;
+                sops.sem_num = BLOCK;
                 sops.sem_op = 1;
                 semop(semId, &sops, 1);
 

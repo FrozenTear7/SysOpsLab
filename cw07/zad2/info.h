@@ -4,25 +4,16 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <time.h>
 
 //helpers
 
 #define keyId 1
 
-const char shmPath[] = "/shm";
-const char barberPath[] = "/barber";
-const char fifoPath[] = "/fifo";
-const char checkerPath[] = "/checker";
-const char slowerPath[] = "/slower";
-
-void throww(const char *err) {
-    printf("Error! %s Errno: %d, %s\n", err, errno,
-           strerror(errno)
-    );
-    exit(3);
-}
+const char *pathShm = "/shm";
+const char *pathBarber = "/barber";
+const char *pathFifo = "/fifo";
+const char *pathBlock = "/block";
 
 long timeMs() {
     struct timespec timer;

@@ -1,28 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/msg.h>
-#include <ctype.h>
 #include <time.h>
 #include <signal.h>
-#include <sys/types.h>
+#include <fcntl.h>
 #include <sys/wait.h>
-
+#include <sys/msg.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/mman.h>
 #include <semaphore.h>
-#include <fcntl.h>
-#include <sys/stat.h>
 
 #include "info.h"
 
 Fifo *fifo = NULL;
 sem_t *BARBER;
-sem_t *FIFO;
-sem_t *CHECKER;
-sem_t *SLOWER;
+sem_t *CLIENTS;
+sem_t *BLOCK;
 int counter = 0;
 sigset_t sigMask;
 
@@ -32,9 +28,8 @@ int takePlace() {
 
     if (barberStat == 0) {
         sem_post(BARBER);
-        sem_wait(SLOWER);
 
-        printf("%d wakes barber up, Time: %ld\n", getpid(), timeMs());
+        printf("%d wake barber up, Time: %ld\n", getpid(), timeMs());
 
         fifo->chair = getpid();
 
@@ -63,9 +58,8 @@ void sigrtminHandler(int signum) {
 void atexitHandler() {
     munmap(fifo, sizeof(fifo));
     sem_close(BARBER);
-    sem_close(FIFO);
-    sem_close(CHECKER);
-    sem_close(SLOWER);
+    sem_close(CLIENTS);
+    sem_close(BLOCK);
 }
 
 int main(int argc, char **argv) {
@@ -76,30 +70,29 @@ int main(int argc, char **argv) {
     signal(SIGINT, sigintHandler);
     signal(SIGRTMIN, sigrtminHandler);
 
-    int shmID = shm_open(shmPath, O_RDWR, 0666);
+    int shmID = shm_open(pathShm, O_RDWR, 0666);
     fifo = (Fifo *) mmap(NULL, sizeof(Fifo), PROT_READ | PROT_WRITE, MAP_SHARED, shmID, 0);
 
-    BARBER = sem_open(barberPath, O_RDWR);
-    FIFO = sem_open(fifoPath, O_RDWR);
-    CHECKER = sem_open(checkerPath, O_RDWR);
-    SLOWER = sem_open(slowerPath, O_RDWR);
+    BARBER = sem_open(pathBarber, O_RDWR);
+    CLIENTS = sem_open(pathFifo, O_RDWR);
+    BLOCK = sem_open(pathBlock, O_RDWR);
 
     for (int i = 0; i < atoi(argv[1]); i++) {
         pid_t id = fork();
 
         if (id == 0) {
             while (counter < atoi(argv[2])) {
-                sem_wait(CHECKER);
+                sem_wait(BLOCK);
 
-                sem_wait(FIFO);
+                sem_wait(CLIENTS);
 
                 int res = takePlace();
 
                 printf("%d sit, Time: %ld\n", getpid(), timeMs());
 
-                sem_post(FIFO);
+                sem_post(CLIENTS);
 
-                sem_post(CHECKER);
+                sem_post(BLOCK);
 
                 if (res != -1) {
                     sigsuspend(&sigMask);

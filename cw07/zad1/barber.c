@@ -1,18 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <ctype.h>
-#include <time.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/shm.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
 
 #include "info.h"
 
@@ -30,7 +25,7 @@ void cut(pid_t pid) {
 }
 
 pid_t sitClient(struct sembuf *sops) {
-    sops->sem_num = 1;
+    sops->sem_num = CLIENTS;
     sops->sem_op = -1;
     semop(semId, sops, 1);
 
@@ -38,7 +33,7 @@ pid_t sitClient(struct sembuf *sops) {
 
     printf("Sit %d, Time: %ld\n", nextClient, timeMs());
 
-    sops->sem_num = 1;
+    sops->sem_num = CLIENTS;
     sops->sem_op = 1;
     semop(semId, sops, 1);
 
@@ -50,7 +45,7 @@ void work() {
         struct sembuf sops;
         sops.sem_flg = 0;
 
-        sops.sem_num = 0;
+        sops.sem_num = BARBER;
         sops.sem_op = -1;
         semop(semId, &sops, 1);
 
@@ -59,7 +54,7 @@ void work() {
         cut(nextClient);
 
         while (1) {
-            sops.sem_num = 1;
+            sops.sem_num = CLIENTS;
             sops.sem_op = -1;
             semop(semId, &sops, 1);
 
@@ -68,7 +63,7 @@ void work() {
             if (nextClient != -1) {
                 printf("Sit %d, Time: %ld\n", nextClient, timeMs());
 
-                sops.sem_num = 1;
+                sops.sem_num = CLIENTS;
                 sops.sem_op = 1;
                 semop(semId, &sops, 1);
 
@@ -76,11 +71,11 @@ void work() {
             } else {
                 printf("SLEEP, Time: %ld\n", timeMs());
 
-                sops.sem_num = 0;
+                sops.sem_num = BARBER;
                 sops.sem_op = -1;
                 semop(semId, &sops, 1);
 
-                sops.sem_num = 1;
+                sops.sem_num = CLIENTS;
                 sops.sem_op = 1;
                 semop(semId, &sops, 1);
 
