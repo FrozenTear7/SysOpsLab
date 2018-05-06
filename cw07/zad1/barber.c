@@ -121,5 +121,5 @@ int main(int argc, char **argv) {
 
     work();
 
-    return 0;
+    exit(0);
 }

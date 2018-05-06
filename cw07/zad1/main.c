@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 
             printf("%d leave, Time: %ld\n", getpid(), timeMs());
 
-            return 0;
+            exit(0);
         }
     }
 

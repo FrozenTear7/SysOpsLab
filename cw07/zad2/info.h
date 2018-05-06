@@ -17,6 +17,13 @@ const char fifoPath[] = "/fifo";
 const char checkerPath[] = "/checker";
 const char slowerPath[] = "/slower";
 
+void throww(const char *err) {
+    printf("Error! %s Errno: %d, %s\n", err, errno,
+           strerror(errno)
+    );
+    exit(3);
+}
+
 long timeMs() {
     struct timespec timer;
     clock_gettime(CLOCK_MONOTONIC, &timer);
