@@ -26,9 +26,7 @@ int counter = 0;
 sigset_t sigMask;
 
 int takePlace() {
-    int barberStat = sem_getvalue(BARBER, &barberStat);
-
-    if (barberStat == 0) {
+    if (sem_getvalue(BARBER, NULL) == 0) {
         sem_wait(SLOWER);
 
         fifo->chair = getpid();
@@ -79,12 +77,18 @@ int main(int argc, char **argv) {
     CHECKER = sem_open(checkerPath, O_RDWR);
     SLOWER = sem_open(slowerPath, O_RDWR);
 
+//    sigfillset(&sigMask);
+//    sigdelset(&sigMask, SIGRTMIN);
+//    sigdelset(&sigMask, SIGINT);
+
     for (int i = 0; i < atoi(argv[1]); i++) {
         pid_t id = fork();
 
         if (id == 0) {
             while (counter < atoi(argv[2])) {
+                puts("xd");
                 sem_wait(CHECKER);
+                puts("xd2");
 
                 sem_wait(FIFO);
 

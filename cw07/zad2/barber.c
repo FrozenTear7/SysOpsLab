@@ -46,12 +46,18 @@ pid_t takeChair() {
 
 void work() {
     while (1) {
+        puts("xd");
         sem_wait(BARBER);
+        puts("xd");
         sem_post(BARBER);
+        puts("xd");
         sem_post(SLOWER);
+        puts("xd");
 
         printf("AWAKENING, Time: %ld\n", timeMs());
+
         pid_t nextClient = takeChair();
+
         cut(nextClient);
 
         while (1) {

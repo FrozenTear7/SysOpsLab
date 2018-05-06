@@ -25,9 +25,7 @@ int shmId = -1;
 int counter = 0;
 
 int takePlace() {
-    int barberStat = semctl(semId, 0, GETVAL);
-
-    if (barberStat == 0) {
+    if (semctl(semId, 0, GETVAL) == 0) {
         struct sembuf sops;
 
         sops.sem_num = 0;
