@@ -18,14 +18,6 @@
 
 #include "info.h"
 
-void prepareFifo();
-
-void prepareSemafors();
-
-int takePlace();
-
-void getCut(int ctsNum);
-
 Fifo *fifo = NULL;
 sem_t *BARBER;
 sem_t *FIFO;
@@ -33,6 +25,32 @@ sem_t *CHECKER;
 sem_t *SLOWER;
 int counter = 0;
 sigset_t sigMask;
+
+int takePlace() {
+    int barberStat;
+    sem_getvalue(BARBER, &barberStat);
+
+    if (barberStat == 0) {
+        sem_post(BARBER);
+        sem_wait(SLOWER);
+
+        printf("%d wakes barber up, Time: %ld\n", getpid(), timeMs());
+
+        fifo->chair = getpid();
+
+        return 1;
+    } else {
+        int res = fifoPush(fifo, getpid());
+
+        if (res == -1) {
+            printf("%d no free place, Time: %ld\n", getpid(), timeMs());
+            return -1;
+        } else {
+            printf("%d in queue, Time: %ld\n", getpid(), timeMs());
+            return 0;
+        }
+    }
+}
 
 void sigintHandler(int signum) {
     exit(1);
@@ -97,7 +115,6 @@ int main(int argc, char **argv) {
 
     while (1) {
         wait(NULL);
-
         if (errno == ECHILD)
             break;
     }
@@ -105,56 +122,3 @@ int main(int argc, char **argv) {
     exit(0);
 }
 
-void getCut(int ctsNum) {
-    while (counter < ctsNum) {
-        if (sem_wait(CHECKER) == -1) throww("Client: taking checker failed!");
-
-        if (sem_wait(FIFO) == -1) throww("Client: taking FIFO failed!");
-
-        int res = takePlace();
-
-        if (sem_post(FIFO) == -1) throww("Client: releasing FIFO failed!");
-
-        if (sem_post(CHECKER) == -1) throww("Client: releasing checker failed!");
-
-        if (res != -1) {
-            sigsuspend(&sigMask);
-            long timeMarker = timeMs();
-            printf("Time: %ld, Client %d just got cut!\n", timeMarker, getpid());
-            fflush(stdout);
-        }
-    }
-}
-
-int takePlace() {
-    int barberStat;
-    sem_getvalue(BARBER, &barberStat);
-
-    pid_t myPID = getpid();
-
-    if (barberStat == 0) {
-        if (sem_post(BARBER) == -1) throww("Client: awakening barber failed!");
-        long timeMarker = timeMs();
-        printf("Time: %ld, Client %d has awakened barber!\n", timeMarker, myPID);
-        fflush(stdout);
-        if (sem_wait(SLOWER) == -1)
-            throww("Client: waiting for barber failed!"); // waiting for barber to set his value to 1
-
-        fifo->chair = myPID;
-
-        return 1;
-    } else {
-        int res = fifoPush(fifo, myPID);
-        if (res == -1) {
-            long timeMarker = timeMs();
-            printf("Time: %ld, Client %d couldnt find free place!\n", timeMarker, myPID);
-            fflush(stdout);
-            return -1;
-        } else {
-            long timeMarker = timeMs();
-            printf("Time: %ld, Client %d took place in the queue!\n", timeMarker, myPID);
-            fflush(stdout);
-            return 0;
-        }
-    }
-}
