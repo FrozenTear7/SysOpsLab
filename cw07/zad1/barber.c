@@ -8,6 +8,7 @@
 #include <sys/sem.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/wait.h>
 
 #include "info.h"
 
@@ -110,9 +111,9 @@ int main(int argc, char **argv) {
 
     semId = semget(fifoKey, 3, IPC_CREAT | IPC_EXCL | 0666);
 
-    semctl(semId, 0, SETVAL, 0);
-    semctl(semId, 1, SETVAL, 1);
-    semctl(semId, 2, SETVAL, 1);
+    semctl(semId, BARBER, SETVAL, 0);
+    semctl(semId, CLIENTS, SETVAL, 1);
+    semctl(semId, BLOCK, SETVAL, 1);
 
     work();
 
