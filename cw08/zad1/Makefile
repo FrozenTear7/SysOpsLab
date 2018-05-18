@@ -6,10 +6,10 @@ all:
 	rm -rf
 
 test:
-	./main 2 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
+	./main 5 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
 
 test2:
-	./main 2 ./test.ascii.pgm ./filter.txt ./result.ascii.pgm
+	./main 5 ./test.ascii.pgm ./filter.txt ./result.ascii.pgm
 
 test3:
-	./main 2 ./feep.ascii.pgm ./filter.txt ./result.ascii.pgm
+	./main 5 ./feep.ascii.pgm ./filter.txt ./result.ascii.pgm

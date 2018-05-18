@@ -17,6 +17,7 @@ int max(int a, int b) {
 }
 
 void *filterImage(void *arg) {
+    puts("xd");
     int i = *((int *) arg);
     for (; i < n; i += noThreads) {
         for (int j = 0; j < m; j++) {
@@ -32,6 +33,7 @@ void *filterImage(void *arg) {
             resultImage[i][j] = ceil(resultSum);
         }
     }
+    puts("dx");
 
     free(arg);
 
@@ -56,7 +58,6 @@ float *lineFloatArgv(char *line, int x) {
 
     char *current_arg = NULL;
     while (argCounter < x && (current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL) {
-        printf("%s", current_arg);
         resultArr[argCounter++] = atof(current_arg);
     }
 
@@ -144,6 +145,13 @@ int main(int argc, char **argv) {
         lineCounter++;
     }
 
+    for (int i = 0; i < c; i++) {
+        for (int j = 0; j < c; j++) {
+            printf("%.2f ", filterArr[i][j]);
+        }
+        printf("\n");
+    }
+
     fclose(fp);
 
     //create threads to process the image
@@ -159,13 +167,6 @@ int main(int argc, char **argv) {
     for (int i = 0; i < noThreads; i++) {
         pthread_join(threadArr[i], NULL);
     }
-
-//    for (int i = 0; i < n; i++) {
-//        for (int j = 0; j < m; j++) {
-//            printf("%d ", resultImage[i][j]);
-//        }
-//        printf("\n");
-//    }
 
     //write the result image to file
 
