@@ -10,3 +10,6 @@ test:
 
 test2:
 	./main 2 ./test.ascii.pgm ./filter.txt ./result.ascii.pgm
+
+test3:
+	./main 2 ./feep.ascii.pgm ./filter.txt ./result.ascii.pgm

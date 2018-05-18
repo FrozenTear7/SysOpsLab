@@ -20,8 +20,6 @@ void *filterImage(void *arg) {
     int i = *((int *) arg);
     for (; i < n; i += noThreads) {
         for (int j = 0; j < m; j++) {
-//            resultImage[i][j] = originalImage[i][j];
-
             float resultSum = 0;
 
             for (int a = 0; a < c; a++) {
@@ -45,7 +43,7 @@ int *lineArgv(char *line, int n) {
     int argCounter = 0;
 
     char *current_arg = NULL;
-    while ((current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL) {
+    while (argCounter < n && (current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL) {
         resultArr[argCounter++] = atoi(current_arg);
     }
 
@@ -88,8 +86,8 @@ int main(int argc, char **argv) {
     while ((read = getline(&line, &len, fp)) != -1) {
         if (lineCounter == 1) {
             int *tmpResult = lineArgv(line, 2);
-            n = tmpResult[0];
-            m = tmpResult[1];
+            m = tmpResult[0];
+            n = tmpResult[1];
 
             originalImage = (int **) malloc(n * sizeof(int *));
             resultImage = (int **) malloc(n * sizeof(int *));
@@ -98,10 +96,10 @@ int main(int argc, char **argv) {
                 originalImage[j] = (int *) malloc(m * sizeof(int));
                 resultImage[j] = (int *) malloc(m * sizeof(int));
             }
-        } else if (lineCounter > 2) {
-            int *tmpResult = lineArgv(line, n);
+        } else if (lineCounter > 2 && lineCounter <= n + 2) {
+            int *tmpResult = lineArgv(line, m);
 
-            for (int j = 0; j < n; j++) {
+            for (int j = 0; j < m; j++) {
                 originalImage[i][j] = tmpResult[j];
             }
 
