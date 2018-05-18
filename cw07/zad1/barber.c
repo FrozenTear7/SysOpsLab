@@ -17,71 +17,50 @@ Fifo *fifo = NULL;
 int semId = -1;
 int shmId = -1;
 
-void cut(pid_t pid) {
-    printf("Start cutting %d, Time: %ld\n", pid, timeMs());
-
-    kill(pid, SIGRTMIN);
-
-    printf("End cutting %d, Time: %ld\n", pid, timeMs());
-}
-
-pid_t sitClient(struct sembuf *sops) {
-    sops->sem_num = CLIENTS;
-    sops->sem_op = -1;
-    semop(semId, sops, 1);
-
-    pid_t nextClient = fifo->chair;
-
-    printf("Sit %d, Time: %ld\n", nextClient, timeMs());
-
-    sops->sem_num = CLIENTS;
-    sops->sem_op = 1;
-    semop(semId, sops, 1);
-
-    return nextClient;
-}
-
 void work() {
+    fifo->asleep = 0;
+
     while (1) {
         struct sembuf sops;
         sops.sem_flg = 0;
 
-        sops.sem_num = BARBER;
+        if (fifoEmpty(fifo)) {
+            printf("SLEEP, Time: %ld\n", timeMs());
+            fifo->asleep = 1;
+        }
+
+        sops.sem_num = CLIENTS;
         sops.sem_op = -1;
         semop(semId, &sops, 1);
 
-        printf("AWAKENING, Time: %ld\n", timeMs());
-        pid_t nextClient = sitClient(&sops);
-        cut(nextClient);
+        sops.sem_num = BLOCK;
+        sops.sem_op = -1;
+        semop(semId, &sops, 1);
 
-        while (1) {
-            sops.sem_num = CLIENTS;
-            sops.sem_op = -1;
+        if(fifo->asleep == 1) {
+            printf("AWAKENING, Time: %ld\n", timeMs());
+            fifo->asleep = 0;
+        }
+
+        pid_t tmp = fifoPop(fifo);
+
+        if (tmp != -1) {
+            printf("Sit %d, Time: %ld\n", tmp, timeMs());
+
+            fifo->chair = tmp;
+            pid_t nextClient = fifo->chair;
+
+            printf("Start cutting %d, Time: %ld\n", nextClient, timeMs());
+
+            sops.sem_num = BARBER;
+            sops.sem_op = 1;
             semop(semId, &sops, 1);
 
-            nextClient = fifoPop(fifo);
+            sops.sem_num = BLOCK;
+            sops.sem_op = 1;
+            semop(semId, &sops, 1);
 
-            if (nextClient != -1) {
-                printf("Sit %d, Time: %ld\n", nextClient, timeMs());
-
-                sops.sem_num = CLIENTS;
-                sops.sem_op = 1;
-                semop(semId, &sops, 1);
-
-                cut(nextClient);
-            } else {
-                printf("SLEEP, Time: %ld\n", timeMs());
-
-                sops.sem_num = BARBER;
-                sops.sem_op = -1;
-                semop(semId, &sops, 1);
-
-                sops.sem_num = CLIENTS;
-                sops.sem_op = 1;
-                semop(semId, &sops, 1);
-
-                break;
-            }
+            printf("End cutting %d, Time: %ld\n", nextClient, timeMs());
         }
     }
 }
@@ -112,7 +91,7 @@ int main(int argc, char **argv) {
     semId = semget(fifoKey, 3, IPC_CREAT | IPC_EXCL | 0666);
 
     semctl(semId, BARBER, SETVAL, 0);
-    semctl(semId, CLIENTS, SETVAL, 1);
+    semctl(semId, CLIENTS, SETVAL, 0);
     semctl(semId, BLOCK, SETVAL, 1);
 
     work();

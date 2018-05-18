@@ -21,57 +21,37 @@ sem_t *BARBER;
 sem_t *CLIENTS;
 sem_t *BLOCK;
 
-void cut(pid_t pid) {
-    printf("Start cutting %d, Time: %ld\n", pid, timeMs());
-
-    kill(pid, SIGRTMIN);
-
-    printf("End cutting %d, Time: %ld\n", pid, timeMs());
-}
-
-pid_t takeChair() {
-    sem_wait(CLIENTS);
-
-    pid_t nextClient = fifo->chair;
-
-    printf("Sit %d, Time: %ld\n", nextClient, timeMs());
-
-    sem_post(CLIENTS);
-
-    return nextClient;
-}
-
 void work() {
+    fifo->asleep = 0;
+
     while (1) {
-        sem_wait(BARBER);
-        sem_post(BARBER);
+        if (fifoEmpty(fifo)) {
+            printf("SLEEP, Time: %ld\n", timeMs());
+            fifo->asleep = 1;
+        }
 
-        printf("AWAKENING, Time: %ld\n", timeMs());
+        sem_wait(CLIENTS);
+        sem_wait(BLOCK);
 
-        pid_t nextClient = takeChair();
+        if(fifo->asleep == 1) {
+            printf("AWAKENING, Time: %ld\n", timeMs());
+            fifo->asleep = 0;
+        }
 
-        cut(nextClient);
+        pid_t tmp = fifoPop(fifo);
 
-        while (1) {
-            sem_wait(CLIENTS);
+        if (tmp != -1) {
+            printf("Sit %d, Time: %ld\n", tmp, timeMs());
 
-            nextClient = fifoPop(fifo);
+            fifo->chair = tmp;
+            pid_t nextClient = fifo->chair;
 
-            if (nextClient != -1) {
-                printf("Sit %d, Time: %ld\n", nextClient, timeMs());
+            printf("Start cutting %d, Time: %ld\n", nextClient, timeMs());
 
-                sem_post(CLIENTS);
+            sem_post(BARBER);
+            sem_post(BLOCK);
 
-                cut(nextClient);
-            } else {
-                printf("SLEEP, Time: %ld\n", timeMs());
-
-                sem_wait(BARBER);
-
-                sem_post(CLIENTS);
-
-                break;
-            }
+            printf("End cutting %d, Time: %ld\n", nextClient, timeMs());
         }
     }
 }
@@ -105,7 +85,7 @@ int main(int argc, char **argv) {
     fifoInit(fifo, atoi(argv[1]));
 
     BARBER = sem_open(pathBarber, O_CREAT | O_EXCL | O_RDWR, 0666, 0);
-    CLIENTS = sem_open(pathFifo, O_CREAT | O_EXCL | O_RDWR, 0666, 1);
+    CLIENTS = sem_open(pathFifo, O_CREAT | O_EXCL | O_RDWR, 0666, 0);
     BLOCK = sem_open(pathBlock, O_CREAT | O_EXCL | O_RDWR, 0666, 1);
 
     work();

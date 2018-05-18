@@ -25,6 +25,7 @@ long timeMs() {
 //Fifo definition
 
 typedef struct Fifo {
+    int asleep;
     int size;
     int head;
     int tail;

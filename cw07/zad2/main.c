@@ -22,37 +22,8 @@ sem_t *BLOCK;
 int counter = 0;
 sigset_t sigMask;
 
-int takePlace() {
-    int barberStat;
-    sem_getvalue(BARBER, &barberStat);
-
-    if (barberStat == 0) {
-        sem_post(BARBER);
-
-        printf("%d wake barber up, Time: %ld\n", getpid(), timeMs());
-
-        fifo->chair = getpid();
-
-        return 1;
-    } else {
-        int res = fifoPush(fifo, getpid());
-
-        if (res == -1) {
-            printf("%d no free place, Time: %ld\n", getpid(), timeMs());
-            return -1;
-        } else {
-            printf("%d in queue, Time: %ld\n", getpid(), timeMs());
-            return 0;
-        }
-    }
-}
-
 void sigintHandler(int signum) {
     exit(1);
-}
-
-void sigrtminHandler(int signum) {
-    counter++;
 }
 
 void atexitHandler() {
@@ -68,7 +39,6 @@ int main(int argc, char **argv) {
 
     atexit(atexitHandler);
     signal(SIGINT, sigintHandler);
-    signal(SIGRTMIN, sigrtminHandler);
 
     int shmID = shm_open(pathShm, O_RDWR, 0666);
     fifo = (Fifo *) mmap(NULL, sizeof(Fifo), PROT_READ | PROT_WRITE, MAP_SHARED, shmID, 0);
@@ -82,27 +52,39 @@ int main(int argc, char **argv) {
 
         if (id == 0) {
             while (counter < atoi(argv[2])) {
+
                 sem_wait(BLOCK);
 
-                sem_wait(CLIENTS);
-
-                int res = takePlace();
-
-                printf("%d sit, Time: %ld\n", getpid(), timeMs());
-
-                sem_post(CLIENTS);
-
-                sem_post(BLOCK);
+                int isEmpty = fifoEmpty(fifo);
+                int res = fifoPush(fifo, getpid());
 
                 if (res != -1) {
-                    sigsuspend(&sigMask);
+                    sem_post(CLIENTS);
+                    sem_post(BLOCK);
+
+                    if (isEmpty == 0) {
+                        printf("%d sit in queue, Time: %ld\n", getpid(), timeMs());
+                    } else {
+                        printf("%d wake barber, Time: %ld\n", getpid(), timeMs());
+                    }
+
+                    sem_wait(BARBER);
+
+                    printf("%d sit, Time: %ld\n", getpid(), timeMs());
                     printf("%d cut, Time: %ld\n", getpid(), timeMs());
+                    counter++;
+                } else {
+                    printf("%d no free place, Time: %ld\n", getpid(), timeMs());
+
+                    sem_post(BLOCK);
+
+                    counter++;
                 }
             }
 
             printf("%d leave, Time: %ld\n", getpid(), timeMs());
 
-            return 0;
+            exit(0);
         }
     }
 
@@ -114,4 +96,3 @@ int main(int argc, char **argv) {
 
     exit(0);
 }
-
