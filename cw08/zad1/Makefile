@@ -2,7 +2,7 @@ CC: gcc -Wall
 
 all:
 
-	$(CC) -o main main.c -pthread
+	$(CC) -o main main.c -pthread -lm
 	rm -rf
 
 test:

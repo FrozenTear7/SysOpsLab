@@ -2,18 +2,40 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <math.h>
 
 int **originalImage, **resultImage;
 float **filterArr;
 int noThreads;
 int n, m, c;
 
-void *filterImage(void *i) {
+int max(int a, int b) {
+    if (a > b)
+        return a;
+    else
+        return b;
+}
+
+void *filterImage(void *arg) {
+    int i = *((int *) arg);
     for (; i < n; i += noThreads) {
         for (int j = 0; j < m; j++) {
-            resultImage[(int) i][j] = originalImage[(int) i][j];
+            //resultImage[i][j] = originalImage[i][j];
+
+            float resultSum = 0;
+
+            for (int a = 0; a < c; a++) {
+                for (int b = 0; b < c; b++) {
+                    resultSum =
+                            originalImage[max(1, i - ceil(c / 2) + a)][max(1, j - ceil(c / 2) + b)] * filterArr[a][b];
+                }
+            }
+
+            resultImage[i][j] = ceil(resultSum);
         }
     }
+
+    free(arg);
 
     return NULL;
 }
@@ -50,6 +72,8 @@ int main(int argc, char **argv) {
 
     pthread_t *threadArr = malloc(noThreads * sizeof(pthread_t));
 
+    //open image file
+
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
@@ -78,15 +102,19 @@ int main(int argc, char **argv) {
             int *tmpResult = lineArgv(line, n);
 
             for (int j = 0; j < n; j++) {
-                //printf(" - %d - \n", tmpResult[j]);
                 originalImage[i][j] = tmpResult[j];
+                //printf("%s ", originalImage[i][j]);
             }
+
+            i++;
         }
 
         lineCounter++;
     }
 
     fclose(fp);
+
+    //open filter file
 
     len = 0;
     lineCounter = 0;
@@ -111,8 +139,9 @@ int main(int argc, char **argv) {
 
             for (int j = 0; j < c; j++) {
                 filterArr[i][j] = tmpResult[j];
-                //printf(" - %.6f - \n", filterArr[i][j]);
             }
+
+            i++;
         }
 
         lineCounter++;
@@ -120,9 +149,15 @@ int main(int argc, char **argv) {
 
     fclose(fp);
 
+    //create threads to process the image
+
     for (int i = 0; i < noThreads; i++) {
-        pthread_create(&threadArr[i], NULL, filterImage, (void *) i);
+        int *threadArg = malloc(sizeof(*threadArg));
+        *threadArg = i;
+        pthread_create(&threadArr[i], NULL, filterImage, (void *) threadArg);
     }
+
+    //wait for the threads to finish their job
 
     for (int i = 0; i < noThreads; i++) {
         pthread_join(threadArr[i], NULL);
@@ -130,10 +165,30 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
-            printf("%s - %s", resultImage[i][j], originalImage[i][j]);
+            printf("%d ", resultImage[i][j]);
         }
         printf("\n");
     }
+
+    //write the result image to file
+
+    fp = fopen(argv[4], "w");
+    if (fp == NULL)
+        exit(1);
+
+    fprintf(fp, "P2\n");
+    fprintf(fp, "%d %d\n", m, n);
+    //TO BE CORRECTED
+    fprintf(fp, "255\n");
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            fprintf(fp, "%d ", resultImage[i][j]);
+        }
+        fprintf(fp, "\n");
+    }
+
+    //free all the allocated memory
 
     for (int i = 0; i < n; i++) {
         free(originalImage[i]);
