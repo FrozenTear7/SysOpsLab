@@ -8,16 +8,16 @@ int **originalImage, **resultImage;
 float **filterArr;
 int noThreads;
 int n, m, c;
+int maxValue = -1;
 
 int max(int a, int b) {
-    if (a > b)
+    if (a >= b)
         return a;
     else
         return b;
 }
 
 void *filterImage(void *arg) {
-    puts("xd");
     int i = *((int *) arg);
     for (; i < n; i += noThreads) {
         for (int j = 0; j < m; j++) {
@@ -25,15 +25,21 @@ void *filterImage(void *arg) {
 
             for (int a = 0; a < c; a++) {
                 for (int b = 0; b < c; b++) {
-                    resultSum =
-                            originalImage[max(0, i - ceil(c / 2) + a)][max(0, j - ceil(c / 2) + b)] * filterArr[a][b];
+                    if (max(0, i - ceil(c / 2) + a) < n && max(0, j - ceil(c / 2) + b) < m) {
+                        float tmp = originalImage[max(0, i - ceil(c / 2) + a)][max(0, j - ceil(c / 2) + b)] *
+                                    filterArr[a][b];
+
+                        if(ceil(tmp) > maxValue)
+                            maxValue = ceil(tmp);
+
+                        resultSum += tmp;
+                    }
                 }
             }
 
-            resultImage[i][j] = ceil(resultSum);
+            resultImage[i][j] = floor(resultSum);
         }
     }
-    puts("dx");
 
     free(arg);
 
@@ -145,13 +151,6 @@ int main(int argc, char **argv) {
         lineCounter++;
     }
 
-    for (int i = 0; i < c; i++) {
-        for (int j = 0; j < c; j++) {
-            printf("%.2f ", filterArr[i][j]);
-        }
-        printf("\n");
-    }
-
     fclose(fp);
 
     //create threads to process the image
@@ -176,8 +175,8 @@ int main(int argc, char **argv) {
 
     fprintf(fp, "P2\n");
     fprintf(fp, "%d %d\n", m, n);
-    //TO BE CORRECTED
-    fprintf(fp, "255\n");
+    fprintf(fp, "%d\n", maxValue);
+    printf("%d", maxValue);
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
