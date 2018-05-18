@@ -8,13 +8,15 @@ float **filterArr;
 int noThreads;
 int n, m, c;
 
-//void *filterImage(void *i) {
-//    for (; i < noThreads; i++) {
-//
-//    }
-//
-//    return NULL;
-//}
+void *filterImage(void *i) {
+    for (; i < n; i += noThreads) {
+        for (int j = 0; j < m; j++) {
+            resultImage[(int) i][j] = originalImage[(int) i][j];
+        }
+    }
+
+    return NULL;
+}
 
 int *lineArgv(char *line, int n) {
     int *resultArr = malloc(n * sizeof(int));
@@ -41,8 +43,8 @@ float *lineFloatArgv(char *line, int n) {
 }
 
 int main(int argc, char **argv) {
-//    if (argc != 5)
-//        exit(1);
+    if (argc != 5)
+        exit(1);
 
     noThreads = atoi(argv[1]);
 
@@ -55,7 +57,7 @@ int main(int argc, char **argv) {
     int lineCounter = 0;
     int i = 0;
 
-    fp = fopen("./mona_lisa.ascii.pgm", "r");
+    fp = fopen(argv[2], "r");
     if (fp == NULL)
         exit(1);
 
@@ -90,7 +92,7 @@ int main(int argc, char **argv) {
     lineCounter = 0;
     i = 0;
 
-    fp = fopen("./filter.txt", "r");
+    fp = fopen(argv[3], "r");
     if (fp == NULL)
         exit(1);
 
@@ -118,17 +120,34 @@ int main(int argc, char **argv) {
 
     fclose(fp);
 
-//    for (int i = 0; i < noThreads; i++) {
-//        pthread_t thread_id;
-//        pthread_create(&thread_id, NULL, filterImage, (void *) i);
-//    }
-//
-//    for (int i = 0; i < noThreads; i++) {
-//        pthread_join(threadArr[i], NULL);
-//    }
-//
-//    free(originalImage);
-//    free(resultImage);
+    for (int i = 0; i < noThreads; i++) {
+        pthread_create(&threadArr[i], NULL, filterImage, (void *) i);
+    }
+
+    for (int i = 0; i < noThreads; i++) {
+        pthread_join(threadArr[i], NULL);
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            printf("%s - %s", resultImage[i][j], originalImage[i][j]);
+        }
+        printf("\n");
+    }
+
+    for (int i = 0; i < n; i++) {
+        free(originalImage[i]);
+        free(resultImage[i]);
+    }
+
+    for (int i = 0; i < c; i++) {
+        free(filterArr[i]);
+    }
+
+    free(originalImage);
+    free(resultImage);
+    free(filterArr);
+    free(threadArr);
 
     exit(0);
 }
