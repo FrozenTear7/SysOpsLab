@@ -38,24 +38,25 @@ void *filterImage(void *arg) {
     return NULL;
 }
 
-int *lineArgv(char *line, int n) {
-    int *resultArr = malloc(n * sizeof(int));
+int *lineArgv(char *line, int x) {
+    int *resultArr = malloc(x * sizeof(int));
     int argCounter = 0;
 
     char *current_arg = NULL;
-    while (argCounter < n && (current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL) {
+    while (argCounter < x && (current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL) {
         resultArr[argCounter++] = atoi(current_arg);
     }
 
     return resultArr;
 }
 
-float *lineFloatArgv(char *line, int n) {
-    float *resultArr = malloc(n * sizeof(int));
+float *lineFloatArgv(char *line, int x) {
+    float *resultArr = malloc(x * sizeof(float));
     int argCounter = 0;
 
     char *current_arg = NULL;
-    while ((current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL) {
+    while (argCounter < x && (current_arg = strtok(current_arg == NULL ? line : NULL, " \n")) != NULL) {
+        printf("%s", current_arg);
         resultArr[argCounter++] = atof(current_arg);
     }
 
@@ -123,16 +124,15 @@ int main(int argc, char **argv) {
 
     while ((read = getline(&line, &len, fp)) != -1) {
         if (lineCounter == 0) {
-            int *tmpResult = lineArgv(line, 1);
-            c = tmpResult[0];
+            c = atoi(line);
 
             filterArr = (float **) malloc(c * sizeof(float *));
 
             for (int j = 0; j < c; j++) {
                 filterArr[j] = (float *) malloc(c * sizeof(float));
             }
-        } else {
-            float *tmpResult = lineFloatArgv(line, n);
+        } else if (lineCounter <= c) {
+            float *tmpResult = lineFloatArgv(line, c);
 
             for (int j = 0; j < c; j++) {
                 filterArr[i][j] = tmpResult[j];
