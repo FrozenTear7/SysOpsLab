@@ -20,14 +20,14 @@ void *filterImage(void *arg) {
     int i = *((int *) arg);
     for (; i < n; i += noThreads) {
         for (int j = 0; j < m; j++) {
-            //resultImage[i][j] = originalImage[i][j];
+//            resultImage[i][j] = originalImage[i][j];
 
             float resultSum = 0;
 
             for (int a = 0; a < c; a++) {
                 for (int b = 0; b < c; b++) {
                     resultSum =
-                            originalImage[max(1, i - ceil(c / 2) + a)][max(1, j - ceil(c / 2) + b)] * filterArr[a][b];
+                            originalImage[max(0, i - ceil(c / 2) + a)][max(0, j - ceil(c / 2) + b)] * filterArr[a][b];
                 }
             }
 
@@ -103,7 +103,6 @@ int main(int argc, char **argv) {
 
             for (int j = 0; j < n; j++) {
                 originalImage[i][j] = tmpResult[j];
-                //printf("%s ", originalImage[i][j]);
             }
 
             i++;
@@ -163,12 +162,12 @@ int main(int argc, char **argv) {
         pthread_join(threadArr[i], NULL);
     }
 
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < m; j++) {
-            printf("%d ", resultImage[i][j]);
-        }
-        printf("\n");
-    }
+//    for (int i = 0; i < n; i++) {
+//        for (int j = 0; j < m; j++) {
+//            printf("%d ", resultImage[i][j]);
+//        }
+//        printf("\n");
+//    }
 
     //write the result image to file
 
