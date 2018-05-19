@@ -3,15 +3,29 @@
 #include <pthread.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/times.h>
 
 int **originalImage, **resultImage;
 float **filterArr;
 int noThreads;
 int n, m, c;
 int maxValue = -1;
+clock_t startTime;
+clock_t endTime;
+struct tms startCpu;
+struct tms endCpu;
 
 int max(int a, int b) {
     if (a >= b)
+        return a;
+    else
+        return b;
+}
+
+int min(int a, int b) {
+    if (a < b)
         return a;
     else
         return b;
@@ -25,19 +39,15 @@ void *filterImage(void *arg) {
 
             for (int a = 0; a < c; a++) {
                 for (int b = 0; b < c; b++) {
-                    if (max(0, i - ceil(c / 2) + a) < n && max(0, j - ceil(c / 2) + b) < m) {
-                        float tmp = originalImage[max(0, i - ceil(c / 2) + a)][max(0, j - ceil(c / 2) + b)] *
-                                    filterArr[a][b];
-
-                        if(ceil(tmp) > maxValue)
-                            maxValue = ceil(tmp);
-
-                        resultSum += tmp;
-                    }
+                    resultSum += originalImage[min(max(0, i - ceil(c / 2) + a), n - 1)][min(max(0, j - ceil(c / 2) + b),
+                                                                                            m - 1)] * filterArr[a][b];
                 }
             }
 
-            resultImage[i][j] = floor(resultSum);
+            if (round(resultSum) > maxValue)
+                maxValue = round(resultSum);
+
+            resultImage[i][j] = round(resultSum);
         }
     }
 
@@ -70,9 +80,29 @@ float *lineFloatArgv(char *line, int x) {
     return resultArr;
 }
 
+void startClock() {
+    startTime = times(&startCpu);
+}
+
+void endClock(double *result) {
+    long clk = sysconf(_SC_CLK_TCK);
+    endTime = times(&endCpu);
+    result[0] = (endTime - startTime) / (double) clk;
+    result[1] = (endCpu.tms_utime - startCpu.tms_utime) / (double) clk;
+    result[2] = (endCpu.tms_stime - startCpu.tms_stime) / (double) clk;
+}
+
+void printTime(double *timer) {
+    printf("\nExecution: real time: %2.2f\n", timer[0]);
+}
+
 int main(int argc, char **argv) {
     if (argc != 5)
         exit(1);
+
+    double timer[3];
+    time_t t;
+    srand((unsigned) time(&t));
 
     noThreads = atoi(argv[1]);
 
@@ -153,6 +183,10 @@ int main(int argc, char **argv) {
 
     fclose(fp);
 
+    //start timer
+
+    startClock();
+
     //create threads to process the image
 
     for (int i = 0; i < noThreads; i++) {
@@ -167,6 +201,11 @@ int main(int argc, char **argv) {
         pthread_join(threadArr[i], NULL);
     }
 
+    //end timer
+
+    endClock(timer);
+    printTime(timer);
+
     //write the result image to file
 
     fp = fopen(argv[4], "w");
@@ -176,7 +215,6 @@ int main(int argc, char **argv) {
     fprintf(fp, "P2\n");
     fprintf(fp, "%d %d\n", m, n);
     fprintf(fp, "%d\n", maxValue);
-    printf("%d", maxValue);
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {

@@ -1,12 +1,15 @@
-CC: gcc -Wall
+Pomiary filtrowania obrazu Mona Lisa 250x360 px
 
-all:
+Filtry:
 
-	$(CC) -o main main.c -pthread -lm
-	rm -rf
+-filter.txt - c = 2
+-filter2.txt - c = 4
+
+Wykonane testy:
 
 test:
 	./main 1 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
+
 
 test2:
 	./main 2 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
