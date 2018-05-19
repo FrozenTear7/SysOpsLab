@@ -1,0 +1,61 @@
+Pomiary filtrowania obrazu Mona Lisa 250x360 px
+
+Filtry:
+
+-filter.txt - c = 3
+-filter2.txt - c = 4
+-filter2.txt - c = 10
+
+Wykonane testy:
+
+test:
+	./main 1 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
+    Execution: real time: 0.03
+
+test2:
+	./main 2 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
+    Execution: real time: 0.01
+
+test3:
+	./main 4 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
+    Execution: real time: 0.02
+
+test4:
+	./main 8 ./mona_lisa.ascii.pgm ./filter.txt ./result.ascii.pgm
+    Execution: real time: 0.02
+
+test5:
+	./main 1 ./mona_lisa.ascii.pgm ./filter2.txt ./result.ascii.pgm
+    Execution: real time: 0.06
+
+test6:
+	./main 2 ./mona_lisa.ascii.pgm ./filter2.txt ./result.ascii.pgm
+    Execution: real time: 0.03
+
+test7:
+	./main 4 ./mona_lisa.ascii.pgm ./filter2.txt ./result.ascii.pgm
+    Execution: real time: 0.02
+
+test8:
+	./main 8 ./mona_lisa.ascii.pgm ./filter2.txt ./result.ascii.pgm
+    Execution: real time: 0.02
+
+test9:
+	./main 1 ./mona_lisa.ascii.pgm ./filter3.txt ./result.ascii.pgm
+    Execution: real time: 0.29
+
+test10:
+	./main 2 ./mona_lisa.ascii.pgm ./filter3.txt ./result.ascii.pgm
+    Execution: real time: 0.14
+
+test11:
+	./main 4 ./mona_lisa.ascii.pgm ./filter3.txt ./result.ascii.pgm
+    Execution: real time: 0.08
+
+test12:
+	./main 8 ./mona_lisa.ascii.pgm ./filter3.txt ./result.ascii.pgm
+    Execution: real time: 0.10
+
+Jak mozna zauwazyc przy mniejszych filtrach c = 3 i c = 4 wyniki wychodza prawie identyczne natomiast
+dla filtra c = 10 wyraznie widac roznice miedzy filtrowaniem obrazu w jednym watku (czas 0.29), a rozbiciem
+operacji na 4 czy 8 watkow (czasy 0.08 i 0.10).
