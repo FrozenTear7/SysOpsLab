@@ -4,20 +4,16 @@
 #include <string.h>
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond   = PTHREAD_COND_INITIALIZER;
 int x = 1;
 int p, k, n, l, modeSearch, modePrint, nk;
 char fileName[50];
 char **textFile;
 int readIndex = 0, writeIndex = 0;
+int fileCount = 0;
 FILE *fp;
 long fileOffset = 0;
-
-void *my_thread_safe_function() {
-    pthread_mutex_lock(&mutex);
-    printf("My id: %d, x: %d\n", (int) pthread_self(), x++);
-
-    return NULL;
-}
+int endConsumer = 0;
 
 void *producer() {
     char *line = NULL;
@@ -26,13 +22,26 @@ void *producer() {
 
     while (1) {
         pthread_mutex_lock(&mutex);
+        
+        while (fileCount > n) {
+            pthread_cond_wait(&cond, &mutex);
+        }
+        
         read = getline(&line, &len, fp);
+        if(read == -1) {
+            endConsumer = 1;
+            pthread_exit(NULL);
+        }
+        
         //textFile[writeIndex] = malloc(len * sizeof(char));
         textFile[writeIndex] = line;
         printf("%s", textFile[writeIndex]);
+        fileCount++;
+        
+        if (fileCount > 0) 
+            pthread_cond_broadcast(&cond);
+        
         pthread_mutex_unlock(&mutex);
-
-        sleep(2);
     }
 
     return NULL;
@@ -40,8 +49,23 @@ void *producer() {
 
 void *consumer() {
     while (1) {
-        //puts("xd1");
-        sleep(3);
+        pthread_mutex_lock(&mutex);
+        
+        if(endConsumer == 1 && fileCount == 0)
+            pthread_exit(NULL);
+        
+        while (fileCount <= 0) {
+            pthread_cond_wait(&cond, &mutex);
+        }
+        
+        printf("%s", textFile[readIndex]);
+        textFile[writeIndex] = null;
+        fileCount--;
+        
+        if (fileCount < n) 
+            pthread_cond_broadcast(&cond);
+        
+        pthread_mutex_unlock(&mutex);
     }
 
     return NULL;
