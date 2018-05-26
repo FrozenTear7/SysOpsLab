@@ -40,14 +40,13 @@ void *producer(void *arg) {
         read = getline(&line, &len, fp);
         if (read == -1) {
             //endConsumer = 1;
-            puts("ELO");
             pthread_exit(NULL);
         }
 
         pthread_mutex_lock(&mutex);
 
         if (fileCount >= n) {
-            printf("[Producer: %d]: WAIT, fileCount: %d\n", i, fileCount);
+            //printf("[Producer: %d]: WAIT, fileCount: %d\n", i, fileCount);
             pthread_cond_wait(&full, &mutex);
         }
 
@@ -55,8 +54,8 @@ void *producer(void *arg) {
         textFile[writeIndex] = line;
 
         printf("[Producer: %d]: %s, fileCount: %d, writeIndex: %d\n", i, textFile[writeIndex], fileCount, writeIndex);
-        if (!modeSearch && modePrint)
-            printf("[Producer: %d]: %s", i);
+        if (modePrint)
+            //printf("[Producer: %d]: %s", i, textFile[writeIndex]);
 
         writeIndex++;
         if (writeIndex >= n)
@@ -64,10 +63,10 @@ void *producer(void *arg) {
 
         fileCount++;
 
-        if (fileCount == 1)
-            pthread_cond_broadcast(&empty);
-
         pthread_mutex_unlock(&mutex);
+        if (fileCount == 1)
+            pthread_cond_signal(&empty);
+
 
         sleep(1);
     }
@@ -87,7 +86,7 @@ void *consumer(void *arg) {
         pthread_mutex_lock(&mutex);
 
         if (fileCount <= 0) {
-            printf("[Consumer: %d]: WAIT, fileCount: %d\n", i, fileCount);
+            //printf("[Consumer: %d]: WAIT, fileCount: %d\n", i, fileCount);
             pthread_cond_wait(&empty, &mutex);
         }
 
@@ -101,10 +100,9 @@ void *consumer(void *arg) {
         //textFile[writeIndex] = null;
         fileCount--;
 
-        if (fileCount == n - 1)
-            pthread_cond_broadcast(&full);
-
         pthread_mutex_unlock(&mutex);
+        if (fileCount == n - 1)
+            pthread_cond_signal(&full);
 
         sleep(1);
     }
