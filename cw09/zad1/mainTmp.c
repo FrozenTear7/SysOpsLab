@@ -11,14 +11,12 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t full = PTHREAD_COND_INITIALIZER;
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
-int x = 1;
 int p, k, n, l, modeSearch, modePrint, nk;
 char fileName[50];
-char **textFile;
+char textFile[1024][1024];
 int readIndex = 0, writeIndex = 0;
 int fileCount = 0;
 FILE *fp;
-long fileOffset = 0;
 int endConsumer = 0;
 pthread_t *threadArrGlobal;
 clock_t startTime;
@@ -26,6 +24,22 @@ clock_t endTime;
 struct tms startCpu;
 struct tms endCpu;
 double timer[3];
+
+void printArray() {
+    puts("----");
+    for (int i = 0; i < n; i++) {
+        if (textFile[i])
+            printf("%d: %s", i, textFile[i]);
+    }
+    puts("----");
+}
+
+long timeMs() {
+    struct timespec timer;
+    clock_gettime(CLOCK_MONOTONIC, &timer);
+
+    return timer.tv_nsec / 1000;
+}
 
 void startClock() {
     startTime = times(&startCpu);
@@ -58,25 +72,32 @@ void *producer(void *arg) {
     ssize_t read;
 
     while (1) {
+        pthread_mutex_lock(&mutex);
+        //printf("LOCK producer %d, Time: %ld\n", i, timeMs());
+
+        while (fileCount >= n) {
+            //puts("Producer wait");
+            pthread_cond_wait(&full, &mutex);
+        }
+
         read = getline(&line, &len, fp);
         if (read == -1 || (nk != 0 && timer[0] > nk)) {
             endConsumer = 1;
             fileCount = 1;
             pthread_cond_broadcast(&empty);
+            pthread_mutex_unlock(&mutex);
             pthread_exit(NULL);
         }
 
-        pthread_mutex_lock(&mutex);
+        //printArray();
 
-        while (fileCount >= n) {
-            pthread_cond_wait(&full, &mutex);
-        }
-
-        //textFile[writeIndex] = malloc(strlen(line) * sizeof(char));
-        textFile[writeIndex] = line;
+        //textFile = malloc(strlen(line) * sizeof(char));
+        strcpy(textFile[writeIndex], line);
 
         if (textFile[writeIndex] && modePrint)
             printf("[Producer: %d]: index: %d: %s", i, writeIndex, textFile[writeIndex]);
+
+        //printArray();
 
         writeIndex++;
         if (writeIndex >= n)
@@ -87,8 +108,9 @@ void *producer(void *arg) {
             pthread_cond_signal(&empty);
 
         pthread_mutex_unlock(&mutex);
+        //printf("UNLOCK producer %d, Time: %ld\n", i, timeMs());
 
-        sleep(1);
+        //sleep(1);
 
         endClock(timer);
     }
@@ -106,14 +128,18 @@ void *consumer(void *arg) {
         }
 
         pthread_mutex_lock(&mutex);
+        //printf("LOCK consumer %d, Time: %ld\n", i, timeMs());
 
         while (fileCount <= 0) {
+            //puts("Consumer wait");
             pthread_cond_wait(&empty, &mutex);
         }
 
         if ((nk != 0 && timer[0] > nk) || endConsumer == 1) {
             pthread_exit(NULL);
         }
+
+        //printArray();
 
         if (modePrint || (textFile[readIndex] && strlen(textFile[readIndex]) > l))
             printf("[Consumer: %d]: index: %d: %s", i, readIndex, textFile[readIndex]);
@@ -128,8 +154,9 @@ void *consumer(void *arg) {
             pthread_cond_signal(&full);
 
         pthread_mutex_unlock(&mutex);
+        //printf("UNLOCK consumer %d, Time: %ld\n", i, timeMs());
 
-        sleep(1);
+        //sleep(1);
 
         endClock(timer);
     }
@@ -179,15 +206,13 @@ int main(int argc, char **argv) {
 
     fclose(fp);
 
-    textFile = malloc(n * sizeof(char *));
-
     fp = fopen(fileName, "r");
     if (fp == NULL)
         exit(1);
 
     pthread_t *threadArr = (pthread_t *) malloc((p + k) * sizeof(pthread_t));
     threadArrGlobal = threadArr;
-    textFile = malloc(n * sizeof(char *));
+    //textFile = malloc(n * sizeof(char *));
 
     startClock();
 
