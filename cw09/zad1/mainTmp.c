@@ -31,6 +31,8 @@ void cancelThreads() {
 
 void *producer(void *arg) {
     int i = *((int *) arg);
+    free(arg);
+
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
@@ -38,7 +40,7 @@ void *producer(void *arg) {
     while (1) {
         read = getline(&line, &len, fp);
         if (read == -1) {
-            //endConsumer = 1;
+            //cancelThreads();
             pthread_exit(NULL);
         }
 
@@ -53,7 +55,7 @@ void *producer(void *arg) {
 
         //printf("[Producer: %d]: %s, fileCount: %d, writeIndex: %d\n", i, textFile[writeIndex], fileCount, writeIndex);
         if (modePrint)
-            //printf("[Producer: %d]: %s", i, line);
+            printf("[Producer: %d]: index: %d: %s", i, writeIndex, textFile[writeIndex]);
 
         writeIndex++;
         if (writeIndex >= n)
@@ -74,12 +76,13 @@ void *producer(void *arg) {
 
 void *consumer(void *arg) {
     int i = *((int *) arg);
+    free(arg);
 
     while (1) {
-//        if (endConsumer == 1 && fileCount == 0) {
-//            //printf("[Consumer: %d]: EXIT\n", i);
-//            pthread_exit(NULL);
-//        }
+        if (endConsumer == 1 && fileCount == 0) {
+            puts("EXIT");
+            pthread_exit(NULL);
+        }
 
         pthread_mutex_lock(&mutex);
 
@@ -87,15 +90,15 @@ void *consumer(void *arg) {
             pthread_cond_wait(&empty, &mutex);
         }
 
-        //printf("[Consumer: %d]: %s, fileCount: %d, readIndex: %d\n", i, textFile[readIndex], fileCount, readIndex);
-        printf("[Consumer: %d]: %s", i, textFile[readIndex]);
+        if (strlen(textFile[readIndex]) > l)
+            printf("[Consumer: %d]: index: %d: %s", i, readIndex, textFile[readIndex]);
+        //printf("[Consumer: %d]: %s", i, textFile[readIndex]);
         //free(textFile[readIndex]);
 
         readIndex++;
         if (readIndex >= n)
             readIndex = 0;
 
-        //textFile[writeIndex] = null;
         fileCount--;
 
         if (fileCount == n - 1)
