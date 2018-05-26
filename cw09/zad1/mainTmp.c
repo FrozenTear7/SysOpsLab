@@ -4,6 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/times.h>
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t full = PTHREAD_COND_INITIALIZER;
@@ -18,6 +21,23 @@ FILE *fp;
 long fileOffset = 0;
 int endConsumer = 0;
 pthread_t *threadArrGlobal;
+clock_t startTime;
+clock_t endTime;
+struct tms startCpu;
+struct tms endCpu;
+double timer[3];
+
+void startClock() {
+    startTime = times(&startCpu);
+}
+
+void endClock(double *result) {
+    long clk = sysconf(_SC_CLK_TCK);
+    endTime = times(&endCpu);
+    result[0] = (endTime - startTime) / (double) clk;
+    result[1] = (endCpu.tms_utime - startCpu.tms_utime) / (double) clk;
+    result[2] = (endCpu.tms_stime - startCpu.tms_stime) / (double) clk;
+}
 
 void cancelThreads() {
     for (int i = 0; i < p + k; i++) {
@@ -39,8 +59,10 @@ void *producer(void *arg) {
 
     while (1) {
         read = getline(&line, &len, fp);
-        if (read == -1) {
-            //cancelThreads();
+        if (read == -1 || (nk != 0 && timer[0] > nk)) {
+            endConsumer = 1;
+            fileCount = 1;
+            pthread_cond_broadcast(&empty);
             pthread_exit(NULL);
         }
 
@@ -50,11 +72,10 @@ void *producer(void *arg) {
             pthread_cond_wait(&full, &mutex);
         }
 
-        textFile[writeIndex] = malloc(strlen(line) * sizeof(char));
+        //textFile[writeIndex] = malloc(strlen(line) * sizeof(char));
         textFile[writeIndex] = line;
 
-        //printf("[Producer: %d]: %s, fileCount: %d, writeIndex: %d\n", i, textFile[writeIndex], fileCount, writeIndex);
-        if (modePrint)
+        if (textFile[writeIndex] && modePrint)
             printf("[Producer: %d]: index: %d: %s", i, writeIndex, textFile[writeIndex]);
 
         writeIndex++;
@@ -62,13 +83,14 @@ void *producer(void *arg) {
             writeIndex = 0;
 
         fileCount++;
-
         if (fileCount == 1)
             pthread_cond_signal(&empty);
 
         pthread_mutex_unlock(&mutex);
 
         sleep(1);
+
+        endClock(timer);
     }
 
     return NULL;
@@ -79,8 +101,7 @@ void *consumer(void *arg) {
     free(arg);
 
     while (1) {
-        if (endConsumer == 1 && fileCount == 0) {
-            puts("EXIT");
+        if ((nk != 0 && timer[0] > nk) || endConsumer == 1) {
             pthread_exit(NULL);
         }
 
@@ -90,10 +111,12 @@ void *consumer(void *arg) {
             pthread_cond_wait(&empty, &mutex);
         }
 
-        if (strlen(textFile[readIndex]) > l)
+        if ((nk != 0 && timer[0] > nk) || endConsumer == 1) {
+            pthread_exit(NULL);
+        }
+
+        if (modePrint || (textFile[readIndex] && strlen(textFile[readIndex]) > l))
             printf("[Consumer: %d]: index: %d: %s", i, readIndex, textFile[readIndex]);
-        //printf("[Consumer: %d]: %s", i, textFile[readIndex]);
-        //free(textFile[readIndex]);
 
         readIndex++;
         if (readIndex >= n)
@@ -107,6 +130,8 @@ void *consumer(void *arg) {
         pthread_mutex_unlock(&mutex);
 
         sleep(1);
+
+        endClock(timer);
     }
 
     return NULL;
@@ -117,6 +142,9 @@ int main(int argc, char **argv) {
         exit(1);
 
     signal(SIGINT, cancelThreads);
+
+    time_t t;
+    srand((unsigned) time(&t));
 
     char *line = NULL;
     size_t len = 0;
@@ -160,6 +188,8 @@ int main(int argc, char **argv) {
     pthread_t *threadArr = (pthread_t *) malloc((p + k) * sizeof(pthread_t));
     threadArrGlobal = threadArr;
     textFile = malloc(n * sizeof(char *));
+
+    startClock();
 
     for (int i = 0; i < p; i++) {
         int *threadArg = malloc(sizeof(*threadArg));
