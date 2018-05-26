@@ -40,6 +40,7 @@ void *producer(void *arg) {
         read = getline(&line, &len, fp);
         if (read == -1) {
             //endConsumer = 1;
+            puts("ELO");
             pthread_exit(NULL);
         }
 
@@ -54,8 +55,8 @@ void *producer(void *arg) {
         textFile[writeIndex] = line;
 
         printf("[Producer: %d]: %s, fileCount: %d, writeIndex: %d\n", i, textFile[writeIndex], fileCount, writeIndex);
-        if (modePrint)
-            //printf("[Producer: %d]: %s", i, textFile[writeIndex]);
+        if (!modeSearch && modePrint)
+            printf("[Producer: %d]: %s", i);
 
         writeIndex++;
         if (writeIndex >= n)
@@ -103,6 +104,7 @@ void *consumer(void *arg) {
         pthread_mutex_unlock(&mutex);
         if (fileCount == n - 1)
             pthread_cond_signal(&full);
+
 
         sleep(1);
     }
