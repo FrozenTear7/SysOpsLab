@@ -12,13 +12,14 @@
 sem_t mutex;
 sem_t fillCount;
 sem_t emptyCount;
-int p, k, n, l, modeSearch, modePrint, nk;
+int p, k, n, l, modeSearch, modePrint;
+float nk;
 char fileName[50];
 char textFile[1024][1024];
 int readIndex = 0, writeIndex = 0;
 int fileCount = 0;
 FILE *fp;
-int endConsumer = 0;
+int endThreads = 0;
 pthread_t *threadArrGlobal;
 clock_t startTime;
 clock_t endTime;
@@ -80,9 +81,15 @@ void *producer(void *arg) {
         sem_wait(&emptyCount);
         sem_wait(&mutex);
 
+        if (endThreads || (nk != 0 && timer[0] > nk)) {
+            sem_post(&mutex);
+            sem_post(&fillCount);
+            pthread_exit(NULL);
+        }
+
         read = getline(&line, &len, fp);
         if (read == -1 || (nk != 0 && timer[0] > nk)) {
-            endConsumer = 1;
+            endThreads = 1;
             sem_post(&mutex);
             sem_post(&fillCount);
             pthread_exit(NULL);
@@ -96,6 +103,8 @@ void *producer(void *arg) {
         writeIndex++;
         if (writeIndex >= n)
             writeIndex = 0;
+
+        fileCount++;
 
         sem_post(&mutex);
         sem_post(&fillCount);
@@ -112,9 +121,10 @@ void *consumer(void *arg) {
         sem_wait(&fillCount);
         sem_wait(&mutex);
 
-        if ((nk != 0 && timer[0] > nk) || endConsumer == 1) {
+        if ((nk != 0 && timer[0] > nk) || (endThreads && fileCount == 0)) {
             sem_post(&mutex);
             sem_post(&emptyCount);
+            sem_post(&fillCount);
             pthread_exit(NULL);
         }
 
@@ -124,6 +134,8 @@ void *consumer(void *arg) {
         readIndex++;
         if (readIndex >= n)
             readIndex = 0;
+
+        fileCount--;
 
         sem_post(&mutex);
         sem_post(&emptyCount);
@@ -166,7 +178,7 @@ int main(int argc, char **argv) {
         } else if (lineCounter == 6) {
             modePrint = atoi(line);
         } else if (lineCounter == 7) {
-            nk = atoi(line);
+            nk = atof(line);
         }
 
         lineCounter++;

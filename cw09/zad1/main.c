@@ -11,28 +11,20 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t full = PTHREAD_COND_INITIALIZER;
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
-int p, k, n, l, modeSearch, modePrint, nk;
+int p, k, n, l, modeSearch, modePrint;
+float nk;
 char fileName[50];
 char textFile[1024][1024];
 int readIndex = 0, writeIndex = 0;
 int fileCount = 0;
 FILE *fp;
-int endConsumer = 0;
+int endThreads = 0;
 pthread_t *threadArrGlobal;
 clock_t startTime;
 clock_t endTime;
 struct tms startCpu;
 struct tms endCpu;
 double timer[3];
-
-void printArray() {
-    puts("----");
-    for (int i = 0; i < n; i++) {
-        if (textFile[i])
-            printf("%d: %s", i, textFile[i]);
-    }
-    puts("----");
-}
 
 long timeMs() {
     struct timespec timer;
@@ -74,14 +66,20 @@ void *producer(void *arg) {
     while (1) {
         pthread_mutex_lock(&mutex);
 
-        while (fileCount >= n) {
+        while (!endThreads && fileCount >= n) {
             pthread_cond_wait(&full, &mutex);
+        }
+
+        if(endThreads || (nk != 0 && timer[0] > nk)) {
+            pthread_mutex_unlock(&mutex);
+            pthread_exit(NULL);
         }
 
         read = getline(&line, &len, fp);
         if (read == -1 || (nk != 0 && timer[0] > nk)) {
-            endConsumer = 1;
+            endThreads = 1;
             pthread_cond_broadcast(&empty);
+            pthread_cond_broadcast(&full);
             pthread_mutex_unlock(&mutex);
             pthread_exit(NULL);
         }
@@ -112,11 +110,12 @@ void *consumer(void *arg) {
     while (1) {
         pthread_mutex_lock(&mutex);
 
-        while (!endConsumer && fileCount <= 0) {
+        while (!endThreads && fileCount <= 0) {
             pthread_cond_wait(&empty, &mutex);
         }
 
-        if ((nk != 0 && timer[0] > nk) || endConsumer == 1) {
+        if ((nk != 0 && timer[0] > nk) || (endThreads && fileCount == 0)) {
+            pthread_cond_broadcast(&empty);
             pthread_mutex_unlock(&mutex);
             pthread_exit(NULL);
         }
@@ -173,7 +172,7 @@ int main(int argc, char **argv) {
         } else if (lineCounter == 6) {
             modePrint = atoi(line);
         } else if (lineCounter == 7) {
-            nk = atoi(line);
+            nk = atof(line);
         }
 
         lineCounter++;
