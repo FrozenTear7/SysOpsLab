@@ -7,10 +7,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/times.h>
+#include <semaphore.h>
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t full = PTHREAD_COND_INITIALIZER;
-pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
+sem_t mutex;
+sem_t fillCount;
+sem_t emptyCount;
 int p, k, n, l, modeSearch, modePrint, nk;
 char fileName[50];
 char textFile[1024][1024];
@@ -60,6 +61,10 @@ void cancelThreads() {
 
     fclose(fp);
 
+    sem_destroy(&mutex);
+    sem_destroy(&fillCount);
+    sem_destroy(&emptyCount);
+
     exit(0);
 }
 
@@ -72,50 +77,31 @@ void *producer(void *arg) {
     ssize_t read;
 
     while (1) {
-        pthread_mutex_lock(&mutex);
-        //printf("LOCK producer %d, Time: %ld\n", i, timeMs());
-
-        while (fileCount >= n) {
-            //puts("Producer wait");
-            pthread_cond_wait(&full, &mutex);
-        }
+        sem_wait(&emptyCount);
+        sem_wait(&mutex);
 
         read = getline(&line, &len, fp);
         if (read == -1 || (nk != 0 && timer[0] > nk)) {
             endConsumer = 1;
-            fileCount = 1;
-            pthread_cond_broadcast(&empty);
-            pthread_mutex_unlock(&mutex);
+            sem_post(&mutex);
+            sem_post(&fillCount);
             pthread_exit(NULL);
         }
 
-        //printArray();
-
-        //textFile = malloc(strlen(line) * sizeof(char));
         strcpy(textFile[writeIndex], line);
 
         if (textFile[writeIndex] && modePrint)
             printf("[Producer: %d]: index: %d: %s", i, writeIndex, textFile[writeIndex]);
 
-        //printArray();
-
         writeIndex++;
         if (writeIndex >= n)
             writeIndex = 0;
 
-        fileCount++;
-        if (fileCount == 1)
-            pthread_cond_signal(&empty);
-
-        pthread_mutex_unlock(&mutex);
-        //printf("UNLOCK producer %d, Time: %ld\n", i, timeMs());
-
-        //sleep(1);
+        sem_post(&mutex);
+        sem_post(&fillCount);
 
         endClock(timer);
     }
-
-    return NULL;
 }
 
 void *consumer(void *arg) {
@@ -123,23 +109,14 @@ void *consumer(void *arg) {
     free(arg);
 
     while (1) {
-        if ((nk != 0 && timer[0] > nk) || endConsumer == 1) {
-            pthread_exit(NULL);
-        }
-
-        pthread_mutex_lock(&mutex);
-        //printf("LOCK consumer %d, Time: %ld\n", i, timeMs());
-
-        while (fileCount <= 0) {
-            //puts("Consumer wait");
-            pthread_cond_wait(&empty, &mutex);
-        }
+        sem_wait(&fillCount);
+        sem_wait(&mutex);
 
         if ((nk != 0 && timer[0] > nk) || endConsumer == 1) {
+            sem_post(&mutex);
+            sem_post(&emptyCount);
             pthread_exit(NULL);
         }
-
-        //printArray();
 
         if (modePrint || (textFile[readIndex] && strlen(textFile[readIndex]) > l))
             printf("[Consumer: %d]: index: %d: %s", i, readIndex, textFile[readIndex]);
@@ -148,20 +125,11 @@ void *consumer(void *arg) {
         if (readIndex >= n)
             readIndex = 0;
 
-        fileCount--;
-
-        if (fileCount == n - 1)
-            pthread_cond_signal(&full);
-
-        pthread_mutex_unlock(&mutex);
-        //printf("UNLOCK consumer %d, Time: %ld\n", i, timeMs());
-
-        //sleep(1);
+        sem_post(&mutex);
+        sem_post(&emptyCount);
 
         endClock(timer);
     }
-
-    return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -212,9 +180,12 @@ int main(int argc, char **argv) {
 
     pthread_t *threadArr = (pthread_t *) malloc((p + k) * sizeof(pthread_t));
     threadArrGlobal = threadArr;
-    //textFile = malloc(n * sizeof(char *));
 
     startClock();
+
+    sem_init(&mutex, 0, 1);
+    sem_init(&emptyCount, 0, n);
+    sem_init(&fillCount, 0, 0);
 
     for (int i = 0; i < p; i++) {
         int *threadArg = malloc(sizeof(*threadArg));
@@ -233,6 +204,10 @@ int main(int argc, char **argv) {
     }
 
     fclose(fp);
+
+    sem_destroy(&mutex);
+    sem_destroy(&fillCount);
+    sem_destroy(&emptyCount);
 
     exit(0);
 }
