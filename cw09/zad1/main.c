@@ -124,6 +124,8 @@ void *consumer(void *arg) {
         if (modePrint || (textFile[readIndex] && strlen(textFile[readIndex]) > l))
             printf("[Consumer: %d]: index: %d: %s", i, readIndex, textFile[readIndex]);
 
+        free(textFile[readIndex]);
+
         readIndex++;
         if (readIndex >= n)
             readIndex = 0;
