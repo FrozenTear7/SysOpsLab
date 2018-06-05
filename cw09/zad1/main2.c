@@ -15,7 +15,7 @@ sem_t emptyCount;
 int p, k, n, l, modeSearch, modePrint;
 float nk;
 char fileName[50];
-char **textFile;
+char textFile[1024][1024];
 int readIndex = 0, writeIndex = 0;
 int fileCount = 0;
 FILE *fp;
@@ -95,7 +95,6 @@ void *producer(void *arg) {
             pthread_exit(NULL);
         }
 
-        textFile[writeIndex] = malloc(strlen(line) * sizeof(char));
         strcpy(textFile[writeIndex], line);
 
         if (textFile[writeIndex] && modePrint)
@@ -131,8 +130,6 @@ void *consumer(void *arg) {
 
         if (modePrint || (textFile[readIndex] && strlen(textFile[readIndex]) > l))
             printf("[Consumer: %d]: index: %d: %s", i, readIndex, textFile[readIndex]);
-
-        free(textFile[readIndex]);
 
         readIndex++;
         if (readIndex >= n)
@@ -195,7 +192,6 @@ int main(int argc, char **argv) {
 
     pthread_t *threadArr = (pthread_t *) malloc((p + k) * sizeof(pthread_t));
     threadArrGlobal = threadArr;
-    textFile = malloc(n * sizeof(char *));
 
     startClock();
 
