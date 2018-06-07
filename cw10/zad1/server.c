@@ -14,14 +14,14 @@
 
 #define MAX_CLIENTS 14
 #define PORT 8888
-#define TRUE 1
-#define FALSE 0
 
 pthread_t listener, pinger, reader;
 
 int clients[MAX_CLIENTS];
 
 char *port, *unixPath;
+char buf[50];
+int bufReady = 0;
 
 void die(char *s) {
     perror(s);
@@ -37,7 +37,7 @@ void atexitHandler() {
 }
 
 void *listenerFunction() {
-    int opt = TRUE;
+    int opt = 1;
     int master_socket, addrlen, new_socket, activity, valread, sd;
     int max_sd;
     struct sockaddr_in address;
@@ -86,7 +86,7 @@ void *listenerFunction() {
     addrlen = sizeof(address);
     puts("Server ready");
 
-    while (TRUE) {
+    while (1) {
         //clear the socket set
         FD_ZERO(&readfds);
 
@@ -145,12 +145,32 @@ void *listenerFunction() {
                     close(sd);
                     clients[i] = 0;
                 } else {
+                    while (!bufReady) {
+                        puts("waiting");
+                        sleep(2);
+                    }
+
+                    puts("xd");
+
                     fflush(stdin);
                     printf("Sending to sd: %d\n", sd);
-                    send(sd, "xd", strlen("xd"), 0);
+
+                    if (send(new_socket, buf, strlen(buf), 0) != strlen(buf)) {
+                        perror("send");
+                    }
                 }
             }
         }
+    }
+}
+
+void *pingerFunction() {
+
+}
+
+void *readerFunction() {
+    while (fgets(buf, sizeof(buf), stdin) != NULL) {
+        bufReady = 1;
     }
 }
 
@@ -165,6 +185,8 @@ int main(int argc, char **argv) {
 //    unixPath = argv[2];
 
     pthread_create(&listener, NULL, listenerFunction, NULL);
+//    pthread_create(&pinger, NULL, pingerFunction, NULL);
+    pthread_create(&reader, NULL, readerFunction, NULL);
 
     while (1) {}
 }

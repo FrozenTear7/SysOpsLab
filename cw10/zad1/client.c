@@ -64,11 +64,37 @@ int main(int argc, char **argv) {
 
 
     while (1) {
-        send(sock, hello, strlen(hello), 0);
-        printf("Hello message sent\n");
+        send(sock, "xd", strlen("xd"), 0);
+        puts("xd");
         valread = read(sock, buffer, 1024);
+        puts("xd2");
         printf("%s\n", buffer);
-        sleep(3);
+
+        char *lineArgv[3];
+        char *current_arg = NULL;
+        int i = 0;
+        while (i < 3 && (current_arg = strtok(current_arg == NULL ? buffer : NULL, " \n")) != NULL) {
+            printf("%s\n", current_arg);
+            lineArgv[i++] = current_arg;
+        }
+
+        int response;
+
+        if (strcmp(lineArgv[0], "add") == 0)
+            response = atoi(lineArgv[1]) + atoi(lineArgv[2]);
+        else if (strcmp(lineArgv[0], "sub") == 0)
+            response = atoi(lineArgv[1]) - atoi(lineArgv[2]);
+        else if (strcmp(lineArgv[0], "mul") == 0)
+            response = atoi(lineArgv[1]) * atoi(lineArgv[2]);
+        else if (strcmp(lineArgv[0], "div") == 0)
+            response = atoi(lineArgv[1]) / atoi(lineArgv[2]);
+        else
+            response = 0;
+
+        sprintf(buffer, "%d", response);
+
+        send(sock, buffer, strlen(buffer), 0);
+        printf("Response message sent\n");
     }
 
     exit(0);
